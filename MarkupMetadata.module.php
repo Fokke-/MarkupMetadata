@@ -55,7 +55,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     // General tags
     if ($this->charset) $this->setMeta('charset', ['charset' => $this->charset]);
-    if ($this->viewport) $this->setMeta('viewport', ['viewport' => $this->viewport]);
+    if ($this->viewport) $this->setMeta('viewport', ['name' => 'viewport', 'content' => $this->viewport]);
     if ($this->description) $this->setMeta('description', ['name' => 'description', 'content' => $this->description]);
 
     // Opengraph tags
