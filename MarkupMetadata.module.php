@@ -49,7 +49,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   private function load() {
     // Dynamic properties
     $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
-    $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : wire('page')->title .' - '. $this->siteName;
+    $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : $this->pageTitle .' - '. $this->siteName;
     $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->domain . wire('page')->url;
     $this->description = ($this->description) ? $this->description : wire('page')->{$this->descriptionField};
 
