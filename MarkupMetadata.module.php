@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return array(
       'title' => 'Markup Metadata',
-      'version' => 100,
+      'version' => 101,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -90,7 +90,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     // Facebook tags
     if ($this->render_facebook) {
-      if ($this->facebookAppId) $this->setMeta('fb:app_id', ['name' => 'fb:app_id', 'content' => $this->facebookAppId]);
+      if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
   }
 
