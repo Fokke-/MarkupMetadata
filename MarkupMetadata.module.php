@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return array(
       'title' => 'Markup Metadata',
-      'version' => 101,
+      'version' => 102,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -60,17 +60,17 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     // Opengraph tags
     if ($this->render_og) {
-      if ($this->pageTitle) $this->setMeta('og:title', ['name' => 'og:title', 'content' => $this->pageTitle]);
-      if ($this->siteName) $this->setMeta('og:site_name', ['name' => 'og:site_name', 'content' => $this->siteName]);
-      if ($this->og_type) $this->setMeta('og:type', ['name' => 'og:type', 'content' => $this->og_type]);
-      if ($this->pageUrl) $this->setMeta('og:url', ['name' => 'og:url', 'content' => $this->pageUrl]);
-      if ($this->description) $this->setMeta('og:description', ['name' => 'og:description', 'content' => $this->description]);
+      if ($this->pageTitle) $this->setMeta('og:title', ['property' => 'og:title', 'content' => $this->pageTitle]);
+      if ($this->siteName) $this->setMeta('og:site_name', ['property' => 'og:site_name', 'content' => $this->siteName]);
+      if ($this->og_type) $this->setMeta('og:type', ['property' => 'og:type', 'content' => $this->og_type]);
+      if ($this->pageUrl) $this->setMeta('og:url', ['property' => 'og:url', 'content' => $this->pageUrl]);
+      if ($this->description) $this->setMeta('og:description', ['property' => 'og:description', 'content' => $this->description]);
 
       // Opengraph image
       if ($this->image) {
-        $this->setMeta('og:image', ['name' => 'og:image', 'content' => $this->image->httpUrl]);
-        $this->setMeta('og:image:width', ['name' => 'og:image:width', 'content' => $this->image->width]);
-        $this->setMeta('og:image:height', ['name' => 'og:image:height', 'content' => $this->image->height]);
+        $this->setMeta('og:image', ['property' => 'og:image', 'content' => $this->image->httpUrl]);
+        $this->setMeta('og:image:width', ['property' => 'og:image:width', 'content' => $this->image->width]);
+        $this->setMeta('og:image:height', ['property' => 'og:image:height', 'content' => $this->image->height]);
       }
     }
 
