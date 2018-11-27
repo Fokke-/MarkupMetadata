@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return array(
       'title' => 'Markup Metadata',
-      'version' => 102,
+      'version' => 103,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -19,6 +19,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'render_og' => 1,
       'render_twitter' => 1,
       'render_facebook' => 1,
+      'render_hreflang' => 1,
       'siteName' => 'Site name',
       'domain' => 'http://domain.com',
       'charset' => 'utf-8',
@@ -26,6 +27,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'og_type' => 'website',
       'pageTitleSelector' => 'pageTitle|title',
       'descriptionField' => 'summary',
+      'hreflangCodeField' => 'languageCode',
       'twitterName' => '',
       'twitterCard' => 'summary_large_image',
       'facebookAppId' => '',
@@ -135,15 +137,18 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   }
 
   public function renderHreflangLinks() {
+    if (!$this->render_hreflang) return;
+
     $out = '';
-    $languages = wire('languages');
+    $languages = wire('languages')->find($this->hreflangCodeField .'!=""');
 
-    if (count($languages)) {
-      foreach ($languages as $l) {
-        if (!wire('page')->viewable($l)) continue;
+    if (count($languages) < 2) return;
 
-        $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->cultureKey .'">';
-      }
+    foreach ($languages as $l) {
+      if (!wire('page')->viewable($l)) continue;
+      // if (!$l->{$this->hreflangCodeField}) continue;
+
+      $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
     }
 
     return $out;
@@ -191,6 +196,15 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldCheckbox');
       $f->name = 'render_facebook';
       $f->label = __('Render Facebook tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_hreflang';
+      $f->label = __('Render hreflang tags');
+      $f->notes = __('Make sure your language template includes the language code field (field name defined in "Field mapping" section below). Use this field to define language/region code for each language. If the language code field is empty, the hreflang tag will not be rendered. ');
+      $f->notes .= __('Note that hreflang tags will be rendered only when your site has at least two languages set up. ');
+      $f->notes .= __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
       $set->add($f);
 
@@ -260,6 +274,13 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'descriptionField';
       $f->label = __('Description field');
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'hreflangCodeField';
+      $f->label = __('Hreflang language/region code field');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
