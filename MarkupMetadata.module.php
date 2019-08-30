@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return [
       'title' => 'Markup Metadata',
-      'version' => 103,
+      'version' => 104,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
