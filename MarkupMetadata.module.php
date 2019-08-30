@@ -9,7 +9,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
-      'autoload' => 'template!=admin',
+      'autoload' => false,
       'icon' => 'hashtag',
     ];
   }
