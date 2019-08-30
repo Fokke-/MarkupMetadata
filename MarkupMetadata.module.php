@@ -25,8 +25,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'charset' => 'utf-8',
       'viewport' => 'width=device-width, initial-scale=1.0',
       'og_type' => 'website',
-      'pageTitleSelector' => 'pageTitle|title',
-      'descriptionField' => 'summary',
+      'pageTitleSelector' => 'title',
+      'descriptionSelector' => 'summary',
       'hreflangCodeField' => 'languageCode',
       'twitterName' => '',
       'twitterCard' => 'summary_large_image',
@@ -53,7 +53,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
     $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : $this->pageTitle .' - '. $this->siteName;
     $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->domain . wire('page')->url;
-    $this->description = ($this->description) ? $this->description : wire('page')->{$this->descriptionField};
+    $this->description = ($this->description) ? $this->description : wire('page')->get($this->descriptionSelector);
 
     // General tags
     if ($this->charset) $this->setMeta('charset', ['charset' => $this->charset]);
@@ -272,7 +272,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'descriptionField';
+      $f->name = 'descriptionSelector';
       $f->label = __('Description field');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
