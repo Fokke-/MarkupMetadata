@@ -43,11 +43,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     }
   }
 
-  public function init() {
-    // Fuel the helper variable
-    $this->wire('metadata', $this);
-  }
-
   private function load() {
     // Dynamic properties
     $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
@@ -146,7 +141,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     foreach ($languages as $l) {
       if (!wire('page')->viewable($l)) continue;
-      // if (!$l->{$this->hreflangCodeField}) continue;
 
       $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
     }
