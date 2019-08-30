@@ -3,7 +3,7 @@
 class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
   public static function getModuleInfo() {
-    return array(
+    return [
       'title' => 'Markup Metadata',
       'version' => 103,
       'summary' => 'Set and render meta tags for head section.',
@@ -11,11 +11,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'singular' => true,
       'autoload' => 'template!=admin',
       'icon' => 'hashtag',
-    );
+    ];
   }
 
   public static function getDefaultData() {
-    return array(
+    return [
       'render_og' => 1,
       'render_twitter' => 1,
       'render_facebook' => 1,
@@ -33,7 +33,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'facebookAppId' => '',
       'image' => null,
       'tags' => [],
-    );
+    ];
   }
 
   public function __construct() {
