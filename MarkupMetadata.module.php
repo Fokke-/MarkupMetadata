@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return [
       'title' => 'Markup Metadata',
-      'version' => 104,
+      'version' => 105,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -48,7 +48,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Dynamic properties
     $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
     $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : $this->pageTitle .' - '. $this->siteName;
-    $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->domain . wire('page')->url . wire('input')->urlSegmentStr;
+    $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->getPageUrl();
     $this->description = ($this->description) ? $this->description : wire('page')->get($this->descriptionSelector);
     $this->keywords = ($this->keywords) ? $this->keywords : wire('page')->get($this->keywordsSelector);
 
@@ -92,6 +92,20 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if ($this->render_facebook) {
       if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
+	}
+
+	private function getPageUrl () {
+		$url = $this->domain . wire('page')->url;
+
+		if (wire('input')->urlSegmentStr) {
+			$url .= wire('input')->urlSegmentStr;
+
+			if (wire('page')->template->slashUrlSegments == 1) {
+				$url .= '/';
+			}
+		}
+
+		return $url;
 	}
 
   public function setMeta(String $key, Array $args) {
