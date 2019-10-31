@@ -27,6 +27,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'og_type' => 'website',
       'pageTitleSelector' => 'title',
       'descriptionSelector' => 'summary',
+      'keywordsSelector' => 'keywords',
       'hreflangCodeField' => 'languageCode',
       'twitterName' => '',
       'twitterCard' => 'summary_large_image',
@@ -47,13 +48,15 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Dynamic properties
     $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
     $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : $this->pageTitle .' - '. $this->siteName;
-    $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->domain . wire('page')->url;
+    $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->domain . wire('page')->url . wire('input')->urlSegmentStr;
     $this->description = ($this->description) ? $this->description : wire('page')->get($this->descriptionSelector);
+    $this->keywords = ($this->keywords) ? $this->keywords : wire('page')->get($this->keywordsSelector);
 
     // General tags
     if ($this->charset) $this->setMeta('charset', ['charset' => $this->charset]);
     if ($this->viewport) $this->setMeta('viewport', ['name' => 'viewport', 'content' => $this->viewport]);
     if ($this->description) $this->setMeta('description', ['name' => 'description', 'content' => $this->description]);
+    if ($this->keywords) $this->setMeta('keywords', ['name' => 'keywords', 'content' => $this->keywords]);
 
     // Opengraph tags
     if ($this->render_og) {
@@ -89,7 +92,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if ($this->render_facebook) {
       if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
-  }
+	}
 
   public function setMeta(String $key, Array $args) {
     $tags = $this->tags;
@@ -133,6 +136,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
   public function renderHreflangLinks() {
     if (!$this->render_hreflang) return;
+    if (!$this->user->language->template->hasField($this->hreflangCodeField)) return;
 
     $out = '';
     $languages = wire('languages')->find($this->hreflangCodeField .'!=""');
@@ -267,7 +271,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
       $f = $modules->get('InputfieldText');
       $f->name = 'descriptionSelector';
-      $f->label = __('Description field');
+      $f->label = __('Description selector');
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'keywordsSelector';
+      $f->label = __('Keywords selector');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
