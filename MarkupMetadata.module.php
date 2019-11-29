@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return [
       'title' => 'Markup Metadata',
-      'version' => 105,
+      'version' => 106,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -92,21 +92,21 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if ($this->render_facebook) {
       if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
-	}
+  }
 
-	private function getPageUrl () {
-		$url = $this->domain . wire('page')->url;
+  private function getPageUrl () {
+    $url = $this->domain . wire('page')->url;
 
-		if (wire('input')->urlSegmentStr) {
-			$url .= wire('input')->urlSegmentStr;
+    if (wire('input')->urlSegmentStr) {
+      $url .= wire('input')->urlSegmentStr;
 
-			if (wire('page')->template->slashUrlSegments == 1) {
-				$url .= '/';
-			}
-		}
+      if (wire('page')->template->slashUrlSegments == 1) {
+        $url .= '/';
+      }
+    }
 
-		return $url;
-	}
+    return $url;
+  }
 
   public function setMeta(String $key, Array $args) {
     $tags = $this->tags;
@@ -150,6 +150,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
   public function renderHreflangLinks() {
     if (!$this->render_hreflang) return;
+    if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return;
     if (!$this->user->language->template->hasField($this->hreflangCodeField)) return;
 
     $out = '';
