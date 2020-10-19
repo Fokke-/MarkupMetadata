@@ -1,0 +1,7 @@
+{
+  "name": "fokke/markupmetadata",
+  "type": "pw-module",
+  "require": {
+    "wireframe-framework/processwire-composer-installer": "^1.0.0"
+  }
+}
