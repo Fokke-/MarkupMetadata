@@ -1,7 +1,15 @@
 {
   "name": "fokke/markupmetadata",
+  "description": "Render meta tags in ProcessWire sites.",
   "type": "pw-module",
+  "authors": [
+    {
+      "name": "Ville Saarivaara",
+      "email": "ville.saarivaara@gmail.com"
+    }
+  ],
   "require": {
+    "php": ">=7.1",
     "wireframe-framework/processwire-composer-installer": "^1.0.0"
   }
 }
