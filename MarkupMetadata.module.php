@@ -5,7 +5,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() {
     return [
       'title' => 'Markup Metadata',
-      'version' => 106,
+      'version' => 107,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Nokikana / Ville Saarivaara',
       'singular' => true,
@@ -33,6 +33,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'twitterCard' => 'summary_large_image',
       'facebookAppId' => '',
       'image' => null,
+      'imageSelector' => null,
+      'imageWidth' => 1200,
+      'imageHeight' => 630,
       'tags' => [],
     ];
   }
@@ -51,6 +54,18 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->getPageUrl();
     $this->description = ($this->description) ? $this->description : wire('page')->get($this->descriptionSelector);
     $this->keywords = ($this->keywords) ? $this->keywords : wire('page')->get($this->keywordsSelector);
+    if (!$this->image && $this->imageSelector) {
+      $this->image = wire('page')->get($this->imageSelector);
+      if ($this->image && ($this->imageWidth || $this->imageHeight)) {
+        if ($this->imageWidth && $this->imageHeight) {
+          $this->image = $this->image->size($this->imageWidth, $this->imageHeight);
+        } else if ($this->imageWidth) {
+          $this->image = $this->image->width($this->imageWidth);
+        } else {
+          $this->image = $this->image->height($this->imageHeight);
+        }
+      }
+    }
 
     // General tags
     if ($this->charset) $this->setMeta('charset', ['charset' => $this->charset]);
@@ -92,21 +107,21 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if ($this->render_facebook) {
       if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
-  }
+	}
 
-  private function getPageUrl () {
-    $url = $this->domain . wire('page')->url;
+	private function getPageUrl () {
+		$url = $this->domain . wire('page')->url;
 
-    if (wire('input')->urlSegmentStr) {
-      $url .= wire('input')->urlSegmentStr;
+		if (wire('input')->urlSegmentStr) {
+			$url .= wire('input')->urlSegmentStr;
 
-      if (wire('page')->template->slashUrlSegments == 1) {
-        $url .= '/';
-      }
-    }
+			if (wire('page')->template->slashUrlSegments == 1) {
+				$url .= '/';
+			}
+		}
 
-    return $url;
-  }
+		return $url;
+	}
 
   public function setMeta(String $key, Array $args) {
     $tags = $this->tags;
@@ -149,9 +164,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   }
 
   public function renderHreflangLinks() {
-    if (!$this->render_hreflang) return;
-    if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return;
-    if (!$this->user->language->template->hasField($this->hreflangCodeField)) return;
+		if (!$this->render_hreflang) return;
+		if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return;
+		if (!$this->user->language->template->hasField($this->hreflangCodeField)) return;
 
     $out = '';
     $languages = wire('languages')->find($this->hreflangCodeField .'!=""');
@@ -159,7 +174,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if (count($languages) < 2) return;
 
     foreach ($languages as $l) {
-      if (!wire('page')->viewable($l)) continue;
+			if (!wire('page')->viewable($l)) continue;
 
       $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
     }
@@ -297,6 +312,34 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
+
+      $imageSet = $modules->get("InputfieldFieldset");
+      $imageSet->label = __('Image');
+      $imageSet->icon = 'image';
+      $imageSet->notes = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
+
+        $f = $modules->get('InputfieldText');
+        $f->name = 'imageSelector';
+        $f->label = __('Image selector');
+        $f->columnWidth = 50;
+        $f->attr('value', $data[$f->name]);
+        $imageSet->add($f);
+
+        $f = $modules->get('InputfieldInteger');
+        $f->name = 'imageWidth';
+        $f->label = __('Image width');
+        $f->columnWidth = 25;
+        $f->attr('value', $data[$f->name]);
+        $imageSet->add($f);
+
+        $f = $modules->get('InputfieldInteger');
+        $f->name = 'imageHeight';
+        $f->label = __('Image height');
+        $f->columnWidth = 25;
+        $f->attr('value', $data[$f->name]);
+        $imageSet->add($f);
+
+      $set->add($imageSet);
 
       $f = $modules->get('InputfieldText');
       $f->name = 'hreflangCodeField';
