@@ -1,7 +1,8 @@
 {
-  "name": "fokke/markupmetadata",
+  "name": "fokke/markup-metadata",
   "description": "Render meta tags in ProcessWire sites.",
   "type": "pw-module",
+  "license": "MPL-2.0",
   "authors": [
     {
       "name": "Ville Saarivaara",
