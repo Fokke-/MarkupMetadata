@@ -2,26 +2,39 @@
 
 class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
-  public static function getModuleInfo() {
+  /**
+   * Module info
+   *
+   * @return Array
+   */
+  public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 107,
+      'version' => 108,
       'summary' => 'Set and render meta tags for head section.',
-      'author' => 'Nokikana / Ville Saarivaara',
+      'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
       'autoload' => false,
       'icon' => 'hashtag',
+      'requires' => [
+        'ProcessWire>=3.0.0',
+      ],
     ];
   }
 
-  public static function getDefaultData() {
+  /**
+   * Module default configuration
+   *
+   * @return Array
+   */
+  public static function getDefaultData() : array {
     return [
       'render_og' => 1,
       'render_twitter' => 1,
       'render_facebook' => 1,
       'render_hreflang' => 1,
       'siteName' => 'Site name',
-      'domain' => 'http://domain.com',
+      'domain' => 'https://domain.com',
       'charset' => 'utf-8',
       'viewport' => 'width=device-width, initial-scale=1.0',
       'og_type' => 'website',
@@ -40,6 +53,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     ];
   }
 
+  /**
+   * Constructor
+   */
   public function __construct() {
     // Set default configuration
     foreach(self::getDefaultData() as $key => $val) {
@@ -47,15 +63,23 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     }
   }
 
+  /**
+   * Load meta tags based on module configuration
+   *
+   * @return $this
+   */
   private function load() {
     // Dynamic properties
-    $this->pageTitle = ($this->pageTitle) ? $this->pageTitle : wire('page')->get($this->pageTitleSelector);
-    $this->documentTitle = ($this->documentTitle) ? $this->documentTitle : $this->pageTitle .' - '. $this->siteName;
-    $this->pageUrl = ($this->pageUrl) ? $this->pageUrl : $this->getPageUrl();
-    $this->description = ($this->description) ? $this->description : wire('page')->get($this->descriptionSelector);
-    $this->keywords = ($this->keywords) ? $this->keywords : wire('page')->get($this->keywordsSelector);
+    $this->pageTitle = $this->pageTitle ?? wire('page')->get($this->pageTitleSelector);
+    $this->documentTitle = $this->documentTitle ?? $this->pageTitle .' - '. $this->siteName;
+    $this->pageUrl = $this->pageUrl ?? $this->getPageUrl();
+    $this->description = $this->description ?? wire('page')->get($this->descriptionSelector);
+    $this->keywords = $this->keywords ?? wire('page')->get($this->keywordsSelector);
+
+    // Image
     if (!$this->image && $this->imageSelector) {
       $this->image = wire('page')->get($this->imageSelector);
+
       if ($this->image && ($this->imageWidth || $this->imageHeight)) {
         if ($this->imageWidth && $this->imageHeight) {
           $this->image = $this->image->size($this->imageWidth, $this->imageHeight);
@@ -107,9 +131,16 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if ($this->render_facebook) {
       if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
     }
+
+    return $this;
 	}
 
-	private function getPageUrl () {
+  /**
+   * Get current page URL
+   *
+   * @return string
+   */
+	private function getPageUrl () : string {
 		$url = $this->domain . wire('page')->url;
 
 		if (wire('input')->urlSegmentStr) {
@@ -123,7 +154,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 		return $url;
 	}
 
-  public function setMeta(String $key, Array $args) {
+  /**
+   * Set a new meta tag
+   *
+   * @param String $key Unique identifier for tag. Will not be used in rendering.
+   * @param Array $args An array containing HTML tag attributes in the following format: $name => $value.
+   * @return Array $tags All defined tags
+   */
+  public function setMeta(String $key, Array $args) : array {
     $tags = $this->tags;
 
     foreach ($args as $arg => $val) {
@@ -135,17 +173,32 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     }
 
     $this->tags = $tags;
+
+    return $this->tags;
   }
 
-  public function removeMeta(String $key) {
+  /**
+   * Remove meta tag
+   *
+   * @param String $key Unique identifier for meta tag.
+   * @return Array All defined tags
+   */
+  public function removeMeta(String $key) : array {
     $tags = $this->tags;
 
     unset($tags[$key]);
 
     $this->tags = $tags;
+
+    return $this->tags;
   }
 
-  public function renderMetaTags() {
+  /**
+   * Render all custom meta tags
+   *
+   * @return String
+   */
+  public function renderMetaTags() : string {
     $out = '';
 
     foreach ($this->tags as $key => $args) {
@@ -163,15 +216,25 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     return $out;
   }
 
-  public function renderHreflangLinks() {
-		if (!$this->render_hreflang) return;
-		if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return;
-		if (!$this->user->language->template->hasField($this->hreflangCodeField)) return;
+  /**
+   * Render hreflang tags
+   *
+   * @return string
+   */
+  public function renderHreflangLinks() : ?string {
+    if (!$this->render_hreflang) return null;
+
+    // Make sure that PW language support is installed
+    if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return null;
+
+    // Make sure that language template has language code field defined.
+		if (!$this->user->language->template->hasField($this->hreflangCodeField)) return null;
 
     $out = '';
     $languages = wire('languages')->find($this->hreflangCodeField .'!=""');
 
-    if (count($languages) < 2) return;
+    // We don't need hreflang tags if we got only one language in use
+    if (count($languages) < 2) return null;
 
     foreach ($languages as $l) {
 			if (!wire('page')->viewable($l)) continue;
@@ -182,7 +245,12 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     return $out;
   }
 
-  public function render() {
+  /**
+   * Render all metadata
+   *
+   * @return string
+   */
+  public function render() : string {
     // Load meta tags
     $this->load();
 
@@ -196,7 +264,13 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     return $out;
   }
 
-  public static function getModuleConfigInputfields(Array $data) {
+  /**
+   * Module configuration fields
+   *
+   * @param Array $data Current module configuration
+   * @return \ProcessWire\InputfieldWrapper
+   */
+  public static function getModuleConfigInputfields(Array $data) : \ProcessWire\InputfieldWrapper {
     // Merge data with default values
     $data = array_merge(self::getDefaultData(), $data);
     $defaults = self::getDefaultData();
@@ -211,7 +285,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
       $f = $modules->get('InputfieldCheckbox');
       $f->name = 'render_og';
-      $f->label = __('Render Opengraph tags');
+      $f->label = __('Render Open Graph tags');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
       $set->add($f);
 
@@ -245,6 +319,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'siteName';
       $f->label = __('Site name');
+      $f->description = __('Value will be used to build document title.');
+      $f->icon = 'home';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $set->add($f);
@@ -252,6 +328,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'domain';
       $f->label = __('Domain');
+      $f->description = __('Used as a base for building the current page URL. Page URL with segments will be appended to the base URL.');
+      $f->notes = __('Enter value without trailing slash.');
+      $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $set->add($f);
@@ -265,6 +344,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'charset';
       $f->label = __('Character set');
+      $f->description = __('Used in *charset* meta tag.');
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -273,6 +353,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'viewport';
       $f->label = __('Viewport');
+      $f->description = __('Used in *viewport* meta tag.');
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -280,7 +361,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
       $f = $modules->get('InputfieldText');
       $f->name = 'og_type';
-      $f->label = __('og:type');
+      $f->label = __('Open Graph site type');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
@@ -294,6 +375,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'pageTitleSelector';
       $f->label = __('Page title selector');
+      $f->description = __('The following selector will be used to get current page title using $page->get() method.');
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -302,6 +384,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'descriptionSelector';
       $f->label = __('Description selector');
+      $f->description = __('The following selector will be used to get current page description using $page->get() method.');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
@@ -309,6 +392,15 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'keywordsSelector';
       $f->label = __('Keywords selector');
+      $f->description = __('The following selector will be used to get current page keywords using $page->get() method.');
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'hreflangCodeField';
+      $f->label = __('Hreflang language/region code field');
+      $f->description = __('The following field name will be used to get current language code. ');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
@@ -316,7 +408,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $imageSet = $modules->get("InputfieldFieldset");
       $imageSet->label = __('Image');
       $imageSet->icon = 'image';
-      $imageSet->notes = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
+      $imageSet->description = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
 
         $f = $modules->get('InputfieldText');
         $f->name = 'imageSelector';
@@ -340,13 +432,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
         $imageSet->add($f);
 
       $set->add($imageSet);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'hreflangCodeField';
-      $f->label = __('Hreflang language/region code field');
-      $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $set->add($f);
 
     $inputfields->add($set);
 
