@@ -165,7 +165,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $tags = $this->tags;
 
     foreach ($args as $arg => $val) {
-      if ($val) {
+      if (!empty($val)) {
         $tags[$key][$arg] = $val;
       } else {
         unset($tags[$key][$arg]);
@@ -183,8 +183,10 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    * @param String $key Unique identifier for meta tag.
    * @return Array All defined tags
    */
-  public function removeMeta(String $key) : array {
+  public function removeMeta(String $key) : ?array {
     $tags = $this->tags;
+
+    if (!isset($tags[$key])) return null;
 
     unset($tags[$key]);
 
@@ -205,7 +207,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $argsMarkup = '';
 
       foreach ($args as $arg => $val) {
-        $argsMarkup .= ($arg && $val) ? ' '. $arg .'="'. $val .'"' : '';
+        $argsMarkup .= (!empty($arg) && !empty($val)) ? ' '. $arg .'="'. $val .'"' : '';
       }
 
       if (!$argsMarkup) continue;
