@@ -256,14 +256,12 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Load meta tags
     $this->load();
 
-    $out = '
+    return '
       <title>'. $this->documentTitle .'</title>
       '. $this->renderMetaTags() .'
       <link rel="canonical" href="'. $this->pageUrl .'">
       '. $this->renderHreflangLinks() .'
     ';
-
-    return $out;
   }
 
   /**
