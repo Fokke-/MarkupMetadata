@@ -141,7 +141,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    * @return string
    */
 	private function getPageUrl () : string {
-		$url = $this->domain . wire('page')->url;
+		$url = rtrim($this->domain, '/') . wire('page')->url;
 
 		if (wire('input')->urlSegmentStr) {
 			$url .= wire('input')->urlSegmentStr;
