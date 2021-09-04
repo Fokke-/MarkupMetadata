@@ -29,26 +29,26 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    */
   public static function getDefaultData() : array {
     return [
-      'render_og' => 1,
-      'render_twitter' => 1,
-      'render_facebook' => 1,
-      'render_hreflang' => 1,
       'siteName' => 'Site name',
       'domain' => 'https://domain.com',
       'charset' => 'utf-8',
       'viewport' => 'width=device-width, initial-scale=1.0',
-      'og_type' => 'website',
       'pageTitleSelector' => 'title',
       'descriptionSelector' => 'summary',
       'keywordsSelector' => 'keywords',
-      'hreflangCodeField' => 'languageCode',
-      'twitterName' => '',
-      'twitterCard' => 'summary_large_image',
-      'facebookAppId' => '',
       'image' => null,
       'imageSelector' => null,
       'imageWidth' => 1200,
       'imageHeight' => 630,
+      'render_hreflang' => 0,
+      'hreflangCodeField' => 'languageCode',
+      'render_og' => 1,
+      'og_type' => 'website',
+      'render_twitter' => 0,
+      'twitterName' => '',
+      'twitterCard' => 'summary_large_image',
+      'render_facebook' => 0,
+      'facebookAppId' => '',
       'tags' => [],
     ];
   }
@@ -280,39 +280,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $inputfields = new InputfieldWrapper();
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Render toggles');
-    $set->icon = 'sliders';
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_og';
-      $f->label = __('Render Open Graph tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_twitter';
-      $f->label = __('Render Twitter tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_facebook';
-      $f->label = __('Render Facebook tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_hreflang';
-      $f->label = __('Render hreflang tags');
-      $f->notes = __('Make sure your language template includes the language code field (field name defined in "Field mapping" section below). Use this field to define language/region code for each language. If the language code field is empty, the hreflang tag will not be rendered. ');
-      $f->notes .= __('Note that hreflang tags will be rendered only when your site has at least two languages set up. ');
-      $f->notes .= __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-    $inputfields->add($set);
-
-    $set = $modules->get("InputfieldFieldset");
     $set->label = __('Site settings');
     $set->icon = 'home';
 
@@ -335,12 +302,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->required = true;
       $set->add($f);
 
-    $inputfields->add($set);
-
-    $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Default meta tags');
-    $set->icon = 'hashtag';
-
       $f = $modules->get('InputfieldText');
       $f->name = 'charset';
       $f->label = __('Character set');
@@ -356,13 +317,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->description = __('Used in *viewport* meta tag.');
       $f->attr('value', $data[$f->name]);
       $f->required = true;
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'og_type';
-      $f->label = __('Open Graph site type');
-      $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
 
@@ -393,14 +347,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'keywordsSelector';
       $f->label = __('Keywords selector');
       $f->description = __('The following selector will be used to get current page keywords using $page->get() method.');
-      $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'hreflangCodeField';
-      $f->label = __('Hreflang language/region code field');
-      $f->description = __('The following field name will be used to get current language code. ');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
@@ -436,13 +382,70 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $inputfields->add($set);
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Social media configuration');
-    $set->icon = 'share-alt';
+    $set->label = __('Hreflang tags');
+    $set->icon = 'language';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_hreflang';
+      $f->label = __('Render hreflang tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'hreflangCodeField';
+      $f->label = __('Hreflang language/region code field');
+      $f->description = __('The following field name will be used to get current language code. ');
+      $f->description .= __('Make sure your **language template** includes this field. Use this field to define language/region code for each language. If the language code field is empty, the hreflang tag will not be rendered. ');
+      $f->description .= __('Note that hreflang tags will be rendered only when your site has at least two languages set up. ');
+      $f->description .= __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_hreflang=1';
+      $f->showIf = 'render_hreflang=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Open Graph tags');
+    $set->icon = 'tags';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_og';
+      $f->label = __('Render Open Graph tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'og_type';
+      $f->label = __('Open Graph site type');
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_og=1';
+      $f->showIf = 'render_og=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Twitter tags');
+    $set->icon = 'twitter';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_twitter';
+      $f->label = __('Render Twitter tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
 
       $f = $modules->get('InputfieldText');
       $f->name = 'twitterName';
       $f->label = __('Twitter name');
       $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->requiredIf = 'render_twitter=1';
+      $f->showIf = 'render_twitter=1';
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -450,12 +453,30 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->label = __('Twitter card type');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_twitter=1';
+      $f->showIf = 'render_twitter=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Facebook tags');
+    $set->icon = 'facebook';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_facebook';
+      $f->label = __('Render Facebook tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
       $f->name = 'facebookAppId';
       $f->label = __('Facebook app ID');
       $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->requiredIf = 'render_facebook=1';
+      $f->showIf = 'render_facebook=1';
       $set->add($f);
 
     $inputfields->add($set);
