@@ -88,58 +88,58 @@ After you have installed the module, check module configuration page for availab
 
 ```php
 // Add this line before rendering
-$metadata->siteName = 'My site';
+$metadata->site_name = 'My site';
 ```
 
-### pageTitle
+### page_title
 
 Type: `string`
 
-Value will be used in `title`, `og:title` and `twitter:title` meta tags. If unset, title of the current page will be used. See [pageTitleSelector](#pagetitleselector).
+Value will be used in `title`, `og:title` and `twitter:title` meta tags. If unset, title of the current page will be used. See [page_title_selector](#pagetitleselector).
 
-### pageTitleSelector
+### page_title_selector
 
 Type: `string`
 
 This selector will be used to get current page title using `$page->get()` method.
 
-### siteName
+### site_name
 
 Type: `string`, Default: `'Site name'`
 
 Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.
 
-### documentTitleSeparator
+### document_title_separator
 
 Type: `string`, Default: `'-'`
 
 Value will be used to separate page title and site name in document title.
 
-### documentTitle
+### document_title
 
 Type: `string`
 
-By default, document title will be built of [pageTitle](#pagetitle), [documentTitleSeparator](#documenttitleseparator) and [siteName](#sitename). You can overwrite this property if you want a fully customized document title.
+By default, document title will be built of [page_title](#pagetitle), [document_title_separator](#documenttitleseparator) and [site_name](#sitename). You can overwrite this property if you want a fully customized document title.
 
-### baseUrl
+### base_url
 
 Type: `string`, Default: `'https://domain.com'`
 
 Used as a base for building the current page URL.
 
-### pageUrl
+### page_url
 
 Type: `string`
 
-This URL will be used in `canonical` and `og:url` meta tags. If unset, page URL will be dynamically built of [baseUrl](#baseurl), current page URL, and URL segments (if defined).
+This URL will be used in `canonical` and `og:url` meta tags. If unset, page URL will be dynamically built of [base_url](#baseurl), current page URL, and URL segments (if defined).
 
 ### description
 
 Type: `string`
 
-Used in `description`, `og:description`, and `twitter:description` meta tags. If unset, description of the current page will be used. See [descriptionSelector](#descriptionselector).
+Used in `description`, `og:description`, and `twitter:description` meta tags. If unset, description of the current page will be used. See [description_selector](#descriptionselector).
 
-### descriptionSelector
+### description_selector
 
 Type: `string`, Default: `'summary'`
 
@@ -149,9 +149,9 @@ This selector will be used to get current page description using `$page->get()` 
 
 Type: `string`
 
-Used in `keywords` meta tag. If unset, keywords of the current page will be used. See [keywordsSelector](#keywordsselector).
+Used in `keywords` meta tag. If unset, keywords of the current page will be used. See [keywords_selector](#keywordsselector).
 
-### keywordsSelector
+### keywords_selector
 
 Type: `string`, Default: `'keywords'`
 
@@ -173,27 +173,27 @@ Used in `viewport` meta tag.
 
 Type: `\ProcessWire\Pageimage`
 
-Used for `og:image` and `twitter:site` meta tags. By default, the module will attempt to get image from the current page by using [imageSelector](#imageselector). This image will be resized to the dimensions defined by [imageWidth](#imagewidth) and [imageHeight](#imageheight) properties.
+Used for `og:image` and `twitter:site` meta tags. By default, the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
 
 **Note that if you set image manually, it will not be resized automatically**.
 
-### imageSelector
+### image_selector
 
 Type: `string`, default: `'image'`
 
 This selector will be used to get current page image using `$page->get()` method.
 
-### imageWidth
+### image_width
 
 Type: `integer`, Default: `1200`
 
-If image was set automatically using [imageSelector](#imageselector), this value will be used as width when resizing that image.
+If image was set automatically using [image_selector](#imageselector), this value will be used as width when resizing that image.
 
-### imageHeight
+### image_height
 
 Type: `integer`, Default: `630`
 
-If image was set automatically using [imageSelector](#imageselector), this value will be used as height when resizing that image.
+If image was set automatically using [image_selector](#imageselector), this value will be used as height when resizing that image.
 
 ### render_hreflang
 
@@ -203,10 +203,10 @@ Toggle rendering of hreflang tags on/off. To enable, set value to `true`. In ord
 
 1. Your site has at least two languages set up
 2. LanguageSupportPageNames module is installed
-3. Field defined in property [hreflangCodeField](#hreflangcodefield) exists and your language template includes that field.
+3. Field defined in property [hreflang_code_field](#hreflangcodefield) exists and your language template includes that field.
 4. Language code field is populated in every language page. If the language code field is empty, the hreflang tag will not be rendered for that language.
 
-### hreflangCodeField
+### hreflang_code_field
 
 Type: `string`, Default: `'languageCode'`
 
@@ -230,13 +230,13 @@ Type: `boolean`, Default: `false`
 
 Toggle rendering of Twitter tags on/off. To enable, set value to `true`.
 
-### twitterName
+### twitter_name
 
 Type: `string`, Default: `null`
 
 Twitter user name. Used in `twitter:site` and `twitter:creator` meta tags.
 
-### twitterCard
+### twitter_card
 
 Type: `string`, Default: `'summary_large_image'`
 
@@ -248,7 +248,7 @@ Type: `boolean`, Default: `false`
 
 Toggle rendering of Facebook tags on/off. To enable, set value to `true`.
 
-### facebookAppId
+### facebook_app_id
 
 Type: `string`, Default: `null`
 
