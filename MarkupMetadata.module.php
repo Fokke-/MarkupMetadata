@@ -3,6 +3,20 @@
 class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
   /**
+   * Array for meta tags
+   *
+   * @var array
+   */
+  private $tags = [];
+
+  /**
+   * Image for the page being rendered
+   *
+   * @var \ProcessWire\Pageimage|null
+   */
+  public $image = null;
+
+  /**
    * Module info
    *
    * @return Array
@@ -10,7 +24,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 108,
+      'version' => 110,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -29,27 +43,26 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    */
   public static function getDefaultData() : array {
     return [
-      'render_og' => 1,
-      'render_twitter' => 1,
-      'render_facebook' => 1,
-      'render_hreflang' => 1,
-      'siteName' => 'Site name',
-      'domain' => 'https://domain.com',
+      'site_name' => 'Site name',
+      'document_title_separator' => '-',
+      'base_url' => 'https://domain.com',
       'charset' => 'utf-8',
       'viewport' => 'width=device-width, initial-scale=1.0',
+      'page_title_selector' => 'title',
+      'description_selector' => 'summary',
+      'keywords_selector' => 'keywords',
+      'image_selector' => 'image',
+      'image_width' => 1200,
+      'image_height' => 630,
+      'render_hreflang' => 0,
+      'hreflang_code_field' => 'languageCode',
+      'render_og' => 1,
       'og_type' => 'website',
-      'pageTitleSelector' => 'title',
-      'descriptionSelector' => 'summary',
-      'keywordsSelector' => 'keywords',
-      'hreflangCodeField' => 'languageCode',
-      'twitterName' => '',
-      'twitterCard' => 'summary_large_image',
-      'facebookAppId' => '',
-      'image' => null,
-      'imageSelector' => null,
-      'imageWidth' => 1200,
-      'imageHeight' => 630,
-      'tags' => [],
+      'render_twitter' => 0,
+      'twitter_name' => null,
+      'twitter_card' => 'summary_large_image',
+      'render_facebook' => 0,
+      'facebook_app_id' => null,
     ];
   }
 
@@ -64,89 +77,43 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   }
 
   /**
-   * Load meta tags based on module configuration
+   * Set a new meta tag
    *
-   * @return $this
+   * @param string $key Tag name
+   * @param array|null $attrs An array of HTML tag attributes in the following format: 'name' => 'value'.
+   * @param string|null $content Inner content for the tag
+   * @return array $tags All defined tags
    */
-  private function load() {
-    // Dynamic properties
-    $this->pageTitle = $this->pageTitle ?? wire('page')->get($this->pageTitleSelector);
-    $this->documentTitle = $this->documentTitle ?? $this->pageTitle .' - '. $this->siteName;
-    $this->pageUrl = $this->pageUrl ?? $this->getPageUrl();
-    $this->description = $this->description ?? wire('page')->get($this->descriptionSelector);
-    $this->keywords = $this->keywords ?? wire('page')->get($this->keywordsSelector);
+  public function setMeta(string $tag, ?array $attrs = [], ?string $content = null) : array {
+    $this->tags[] = [
+      'tag' => $tag,
+      'attrs' => $attrs,
+      'content' => $content,
+    ];
 
-    // Image
-    if (!$this->image && $this->imageSelector) {
-      $this->image = wire('page')->get($this->imageSelector);
-
-      if ($this->image && ($this->imageWidth || $this->imageHeight)) {
-        if ($this->imageWidth && $this->imageHeight) {
-          $this->image = $this->image->size($this->imageWidth, $this->imageHeight);
-        } else if ($this->imageWidth) {
-          $this->image = $this->image->width($this->imageWidth);
-        } else {
-          $this->image = $this->image->height($this->imageHeight);
-        }
-      }
-    }
-
-    // General tags
-    if ($this->charset) $this->setMeta('charset', ['charset' => $this->charset]);
-    if ($this->viewport) $this->setMeta('viewport', ['name' => 'viewport', 'content' => $this->viewport]);
-    if ($this->description) $this->setMeta('description', ['name' => 'description', 'content' => $this->description]);
-    if ($this->keywords) $this->setMeta('keywords', ['name' => 'keywords', 'content' => $this->keywords]);
-
-    // Opengraph tags
-    if ($this->render_og) {
-      if ($this->pageTitle) $this->setMeta('og:title', ['property' => 'og:title', 'content' => $this->pageTitle]);
-      if ($this->siteName) $this->setMeta('og:site_name', ['property' => 'og:site_name', 'content' => $this->siteName]);
-      if ($this->og_type) $this->setMeta('og:type', ['property' => 'og:type', 'content' => $this->og_type]);
-      if ($this->pageUrl) $this->setMeta('og:url', ['property' => 'og:url', 'content' => $this->pageUrl]);
-      if ($this->description) $this->setMeta('og:description', ['property' => 'og:description', 'content' => $this->description]);
-
-      // Opengraph image
-      if ($this->image) {
-        $this->setMeta('og:image', ['property' => 'og:image', 'content' => $this->image->httpUrl]);
-        $this->setMeta('og:image:width', ['property' => 'og:image:width', 'content' => $this->image->width]);
-        $this->setMeta('og:image:height', ['property' => 'og:image:height', 'content' => $this->image->height]);
-      }
-    }
-
-    // Twitter tags
-    if ($this->render_twitter) {
-      if ($this->twitterCard) $this->setMeta('twitter:card', ['name' => 'twitter:card', 'content' => $this->twitterCard]);
-      if ($this->twitterName) $this->setMeta('twitter:site', ['name' => 'twitter:site', 'content' => $this->twitterName]);
-      if ($this->twitterName) $this->setMeta('twitter:creator', ['name' => 'twitter:creator', 'content' => $this->twitterName]);
-      if ($this->pageTitle) $this->setMeta('twitter:title', ['name' => 'twitter:title', 'content' => $this->pageTitle]);
-      if ($this->description) $this->setMeta('twitter:description', ['name' => 'twitter:description', 'content' => $this->description]);
-
-      // Twitter image
-      if ($this->image) {
-        $this->setMeta('twitter:image', ['name' => 'twitter:image', 'content' => $this->image->httpUrl]);
-      }
-    }
-
-    // Facebook tags
-    if ($this->render_facebook) {
-      if ($this->facebookAppId) $this->setMeta('fb:app_id', ['property' => 'fb:app_id', 'content' => $this->facebookAppId]);
-    }
-
-    return $this;
-	}
+    return $this->tags;
+  }
 
   /**
-   * Get current page URL
+   * Get page URL
    *
-   * @return string
+   * @param \ProcessWire\Language|null $language ProcessWire language page
+   * @return string|null
    */
-	private function getPageUrl () : string {
-		$url = $this->domain . wire('page')->url;
+	private function getPageUrl (?\ProcessWire\Language $language = null) : ?string {
+    if (empty($this->base_url)) return null;
 
-		if (wire('input')->urlSegmentStr) {
-			$url .= wire('input')->urlSegmentStr;
+    // Add base URL
+		$url = rtrim($this->base_url, '/');
 
-			if (wire('page')->template->slashUrlSegments == 1) {
+    // Add page URL
+    $url .= (!empty($language)) ? $this->page->localUrl($language) : $this->page->url;
+
+    // Add URL segments
+		if ($this->input->urlSegmentStr) {
+			$url .= $this->input->urlSegmentStr;
+
+			if ($this->page->template->slashUrlSegments == 1) {
 				$url .= '/';
 			}
 		}
@@ -155,122 +122,176 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 	}
 
   /**
-   * Set a new meta tag
+   * Load meta tags based on module configuration
    *
-   * @param String $key Unique identifier for tag. Will not be used in rendering.
-   * @param Array $args An array containing HTML tag attributes in the following format: $name => $value.
-   * @return Array $tags All defined tags
+   * @return object $this
    */
-  public function setMeta(String $key, Array $args) : array {
-    $tags = $this->tags;
+  private function load() : object {
+    // Dynamic properties
+    $this->page_title = $this->page_title ?? $this->page->get($this->page_title_selector);
+    $this->page_url = $this->page_url ?? $this->getPageUrl();
+    $this->description = $this->description ?? $this->page->get($this->description_selector);
+    $this->keywords = $this->keywords ?? $this->page->get($this->keywords_selector);
 
-    foreach ($args as $arg => $val) {
-      if (!empty($val)) {
-        $tags[$key][$arg] = $val;
-      } else {
-        unset($tags[$key][$arg]);
+    // Build document title
+    if (empty($this->document_title)) {
+      $this->document_title = implode(' ', array_filter([
+        $this->page_title ?? null,
+        (!empty($this->page_title) && !empty($this->site_name)) ? $this->document_title_separator : null,
+        $this->site_name ?? null,
+      ]));
+    }
+
+    // Try to find image if it's not already defined
+    if (
+      empty($this->image) &&
+      !empty($this->image_selector)
+    ) {
+      $imageResult = $this->page->get($this->image_selector);
+      $image = null;
+
+      if (!empty($imageResult)) {
+        // If image field contains multiple images, get the first one
+        if ($imageResult instanceof \ProcessWire\Pageimages) {
+          $image = $imageResult->first();
+        } else if ($imageResult instanceof \ProcessWire\Pageimage) {
+          $image = $imageResult;
+        } else {
+          $image = null;
+        }
+
+        // Resize image
+        if (!empty($image)) {
+          if (!empty($this->image_width) && !empty($this->image_height)) {
+            $this->image = $image->size($this->image_width, $this->image_height);
+          } else if (!empty($this->image_width)) {
+            $this->image = $image->width($this->image_width);
+          } else if (!empty($this->image_height)) {
+            $this->image = $image->height($this->image_height);
+          } else {
+            $this->image = null;
+          }
+        }
       }
     }
 
-    $this->tags = $tags;
+    // General tags
+    if (!empty($this->document_title)) $this->setMeta('title', null, $this->document_title);
+    if (!empty($this->charset)) $this->setMeta('meta', ['charset' => $this->charset]);
+    if (!empty($this->page_url)) $this->setMeta('link', ['rel' => 'canonical', 'href' => $this->page_url]);
+    if (!empty($this->viewport)) $this->setMeta('meta', ['name' => 'viewport', 'content' => $this->viewport]);
+    if (!empty($this->description)) $this->setMeta('meta', ['name' => 'description', 'content' => $this->description]);
+    if (!empty($this->keywords)) $this->setMeta('meta', ['name' => 'keywords', 'content' => $this->keywords]);
 
-    return $this->tags;
-  }
+    // Opengraph tags
+    if ((bool) $this->render_og === true) {
+      if (!empty($this->page_title)) $this->setMeta('meta', ['property' => 'og:title', 'content' => $this->page_title]);
+      if (!empty($this->site_name)) $this->setMeta('meta', ['property' => 'og:site_name', 'content' => $this->site_name]);
+      if (!empty($this->og_type)) $this->setMeta('meta', ['property' => 'og:type', 'content' => $this->og_type]);
+      if (!empty($this->page_url)) $this->setMeta('meta', ['property' => 'og:url', 'content' => $this->page_url]);
+      if (!empty($this->description)) $this->setMeta('meta', ['property' => 'og:description', 'content' => $this->description]);
 
-  /**
-   * Remove meta tag
-   *
-   * @param String $key Unique identifier for meta tag.
-   * @return Array All defined tags
-   */
-  public function removeMeta(String $key) : ?array {
-    $tags = $this->tags;
-
-    if (!isset($tags[$key])) return null;
-
-    unset($tags[$key]);
-
-    $this->tags = $tags;
-
-    return $this->tags;
-  }
-
-  /**
-   * Render all custom meta tags
-   *
-   * @return String
-   */
-  public function renderMetaTags() : string {
-    $out = '';
-
-    foreach ($this->tags as $key => $args) {
-      $argsMarkup = '';
-
-      foreach ($args as $arg => $val) {
-        $argsMarkup .= (!empty($arg) && !empty($val)) ? ' '. $arg .'="'. $val .'"' : '';
+      // Opengraph image
+      if (!empty($this->image)) {
+        $this->setMeta('meta', ['property' => 'og:image', 'content' => $this->image->httpUrl]);
+        $this->setMeta('meta', ['property' => 'og:image:width', 'content' => $this->image->width]);
+        $this->setMeta('meta', ['property' => 'og:image:height', 'content' => $this->image->height]);
       }
-
-      if (!$argsMarkup) continue;
-
-      $out .= '<meta'. $argsMarkup .'>';
     }
 
-    return $out;
-  }
+    // Twitter tags
+    if ((bool) $this->render_twitter === true) {
+      if (!empty($this->twitter_card)) $this->setMeta('meta', ['name' => 'twitter:card', 'content' => $this->twitter_card]);
+      if (!empty($this->twitter_name)) {
+        $this->setMeta('meta', ['name' => 'twitter:site', 'content' => $this->twitter_name]);
+        $this->setMeta('meta', ['name' => 'twitter:creator', 'content' => $this->twitter_name]);
+      }
+      if (!empty($this->page_title)) $this->setMeta('meta', ['name' => 'twitter:title', 'content' => $this->page_title]);
+      if (!empty($this->description)) $this->setMeta('meta', ['name' => 'twitter:description', 'content' => $this->description]);
 
-  /**
-   * Render hreflang tags
-   *
-   * @return string
-   */
-  public function renderHreflangLinks() : ?string {
-    if (!$this->render_hreflang) return null;
-
-    // Make sure that PW language support is installed
-    if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return null;
-
-    // Make sure that language template has language code field defined.
-		if (!$this->user->language->template->hasField($this->hreflangCodeField)) return null;
-
-    $out = '';
-    $languages = wire('languages')->find($this->hreflangCodeField .'!=""');
-
-    // We don't need hreflang tags if we got only one language in use
-    if (count($languages) < 2) return null;
-
-    foreach ($languages as $l) {
-			if (!wire('page')->viewable($l)) continue;
-
-      $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
+      // Twitter image
+      if (!empty($this->image)) {
+        $this->setMeta('meta', ['name' => 'twitter:image', 'content' => $this->image->httpUrl]);
+      }
     }
 
-    return $out;
-  }
+    // Facebook tags
+    if ((bool) $this->render_facebook === true) {
+      if (!empty($this->facebook_app_id)) $this->setMeta('meta', ['property' => 'fb:app_id', 'content' => $this->facebook_app_id]);
+    }
+
+    // Hreflang links
+    if (
+      (bool) $this->render_hreflang === true &&
+      $this->modules->isInstalled('LanguageSupportPageNames') &&
+      $this->user->language->template->hasField($this->hreflang_code_field)
+    ) {
+      // Get all languages which have language code field defined
+      $languages = $this->languages->find($this->hreflang_code_field .'!=""');
+
+      // Set hreflang tags if we got more than one language in use
+      if (count($languages) > 1) {
+        foreach ($languages as $language) {
+          if (!$this->page->viewable($language)) continue;
+
+          $url = $this->getPageUrl($language);
+          if (empty($url)) continue;
+
+          $this->setMeta('link', [
+            'rel' => 'alternate',
+            'href' => $url,
+            'hreflang' => $language->{$this->hreflang_code_field},
+          ]);
+        }
+      }
+    }
+
+    return $this;
+	}
 
   /**
-   * Render all metadata
+   * Render meta tags
    *
-   * @return string
+   * @return string|null
    */
-  public function render() : string {
+  public function render() : ?string {
     // Load meta tags
     $this->load();
 
-    return '
-      <title>'. $this->documentTitle .'</title>
-      '. $this->renderMetaTags() .'
-      <link rel="canonical" href="'. $this->pageUrl .'">
-      '. $this->renderHreflangLinks() .'
-    ';
+    if (empty($this->tags)) return null;
+
+    return array_reduce($this->tags, function ($acc, $item) {
+      if (empty($item['tag'])) return $acc;
+
+      $attrsMarkup = '';
+
+      if (!empty($item['attrs'])) {
+        foreach ($item['attrs'] as $key => $value) {
+          // Discard attributes without value
+          if (empty($value)) continue;
+
+          $attrsMarkup .= ' ' . $key . '="' . $value . '"';
+        }
+      }
+
+      $acc .= '<' . $item['tag'] . $attrsMarkup . '>';
+
+      // Render inner content and closing tag
+      if (!empty($item['content'])) {
+        $acc .= $item['content'] . '</' . $item['tag'] . '>';
+      }
+
+      return $acc;
+    }, '');
   }
 
   /**
    * Module configuration fields
    *
-   * @param Array $data Current module configuration
+   * @param array $data Current module configuration
    * @return \ProcessWire\InputfieldWrapper
    */
-  public static function getModuleConfigInputfields(Array $data) : \ProcessWire\InputfieldWrapper {
+  public static function getModuleConfigInputfields(array $data) : \ProcessWire\InputfieldWrapper {
     // Merge data with default values
     $data = array_merge(self::getDefaultData(), $data);
     $defaults = self::getDefaultData();
@@ -280,71 +301,43 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $inputfields = new InputfieldWrapper();
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Render toggles');
-    $set->icon = 'sliders';
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_og';
-      $f->label = __('Render Open Graph tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_twitter';
-      $f->label = __('Render Twitter tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_facebook';
-      $f->label = __('Render Facebook tags');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-      $f = $modules->get('InputfieldCheckbox');
-      $f->name = 'render_hreflang';
-      $f->label = __('Render hreflang tags');
-      $f->notes = __('Make sure your language template includes the language code field (field name defined in "Field mapping" section below). Use this field to define language/region code for each language. If the language code field is empty, the hreflang tag will not be rendered. ');
-      $f->notes .= __('Note that hreflang tags will be rendered only when your site has at least two languages set up. ');
-      $f->notes .= __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
-      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
-      $set->add($f);
-
-    $inputfields->add($set);
-
-    $set = $modules->get("InputfieldFieldset");
     $set->label = __('Site settings');
     $set->icon = 'home';
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'siteName';
+      $f->name = 'site_name';
       $f->label = __('Site name');
-      $f->description = __('Value will be used to build document title.');
+      $f->description = __('Value will be added to the document title after page title.');
       $f->icon = 'home';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'domain';
-      $f->label = __('Domain');
-      $f->description = __('Used as a base for building the current page URL. Page URL with segments will be appended to the base URL.');
+      $f->name = 'document_title_separator';
+      $f->label = __('Document title separator');
+      $f->description = __('Value will be used to separate page title and site name in document title.');
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->icon = 'ellipsis-h';
+      $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'base_url';
+      $f->label = __('Base URL');
+      $f->description = __('Used as a base for building the current page URL.');
       $f->notes = __('Enter value without trailing slash.');
       $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $set->add($f);
 
-    $inputfields->add($set);
-
-    $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Default meta tags');
-    $set->icon = 'hashtag';
-
       $f = $modules->get('InputfieldText');
       $f->name = 'charset';
       $f->label = __('Character set');
       $f->description = __('Used in *charset* meta tag.');
+      $f->icon = 'keyboard-o';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -354,15 +347,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'viewport';
       $f->label = __('Viewport');
       $f->description = __('Used in *viewport* meta tag.');
+      $f->icon = 'desktop';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'og_type';
-      $f->label = __('Open Graph site type');
-      $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
 
@@ -373,60 +360,61 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $set->icon = 'link';
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'pageTitleSelector';
+      $f->name = 'page_title_selector';
       $f->label = __('Page title selector');
       $f->description = __('The following selector will be used to get current page title using $page->get() method.');
+      $f->icon = 'header';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'descriptionSelector';
+      $f->name = 'description_selector';
       $f->label = __('Description selector');
       $f->description = __('The following selector will be used to get current page description using $page->get() method.');
+      $f->icon = 'info-circle';
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'keywordsSelector';
+      $f->name = 'keywords_selector';
       $f->label = __('Keywords selector');
       $f->description = __('The following selector will be used to get current page keywords using $page->get() method.');
-      $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'hreflangCodeField';
-      $f->label = __('Hreflang language/region code field');
-      $f->description = __('The following field name will be used to get current language code. ');
+      $f->icon = 'tags';
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $set->add($f);
 
       $imageSet = $modules->get("InputfieldFieldset");
-      $imageSet->label = __('Image');
+      $imageSet->label = __('Images');
       $imageSet->icon = 'image';
       $imageSet->description = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
 
         $f = $modules->get('InputfieldText');
-        $f->name = 'imageSelector';
+        $f->name = 'image_selector';
         $f->label = __('Image selector');
+        $f->icon = 'image';
+        $f->notes = __('Default value') .': '. $defaults[$f->name];
         $f->columnWidth = 50;
         $f->attr('value', $data[$f->name]);
         $imageSet->add($f);
 
         $f = $modules->get('InputfieldInteger');
-        $f->name = 'imageWidth';
+        $f->name = 'image_width';
         $f->label = __('Image width');
+        $f->icon = 'arrows-h';
+        $f->notes = __('Default value') .': '. $defaults[$f->name];
         $f->columnWidth = 25;
         $f->attr('value', $data[$f->name]);
         $imageSet->add($f);
 
         $f = $modules->get('InputfieldInteger');
-        $f->name = 'imageHeight';
+        $f->name = 'image_height';
         $f->label = __('Image height');
+        $f->icon = 'arrows-v';
+        $f->notes = __('Default value') .': '. $defaults[$f->name];
         $f->columnWidth = 25;
         $f->attr('value', $data[$f->name]);
         $imageSet->add($f);
@@ -436,26 +424,119 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $inputfields->add($set);
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Social media configuration');
-    $set->icon = 'share-alt';
+    $set->label = __('Hreflang tags');
+    $set->icon = 'language';
 
-      $f = $modules->get('InputfieldText');
-      $f->name = 'twitterName';
-      $f->label = __('Twitter name');
-      $f->attr('value', $data[$f->name]);
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_hreflang';
+      $f->label = __('Render hreflang tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldMarkup');
+      $f->label = __('Instructions for setting up hreflang tags');
+      $f->icon = 'info-circle';
+      $f->value = '
+        <p>
+          '. __('To render hreflang tags, the following requirements must be met:') .'
+        </p>
+        <ol>
+          <li>'. __('Your site has at least two languages set up') .'</li>
+          <li>'. __('LanguageSupportPageNames module is installed') .'</li>
+          <li>'. __('Field defined in "Hreflang language/region code field" exists and your language template includes that field.') .'</li>
+          <li>'. __('Language code field is populated in every language page. If the language code field is empty, the hreflang tag will not be rendered for that language.') .'</li>
+        </ol>
+      ';
+      $f->notes = __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
+      $f->showIf = 'render_hreflang=1';
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'twitterCard';
-      $f->label = __('Twitter card type');
+      $f->name = 'hreflang_code_field';
+      $f->label = __('Hreflang language/region code field');
+      $f->description = __('The following field name will be used define language code for every language page.');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_hreflang=1';
+      $f->showIf = 'render_hreflang=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Open Graph tags');
+    $set->icon = 'tags';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_og';
+      $f->label = __('Render Open Graph tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'facebookAppId';
-      $f->label = __('Facebook app ID');
+      $f->name = 'og_type';
+      $f->label = __('Open Graph site type');
       $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_og=1';
+      $f->showIf = 'render_og=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Twitter tags');
+    $set->icon = 'twitter';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_twitter';
+      $f->label = __('Render Twitter tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'twitter_name';
+      $f->label = __('Twitter name');
+      $f->icon = 'user';
+      $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->requiredIf = 'render_twitter=1';
+      $f->showIf = 'render_twitter=1';
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'twitter_card';
+      $f->label = __('Twitter card type');
+      $f->icon = 'id-card-o';
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->required = true;
+      $f->requiredIf = 'render_twitter=1';
+      $f->showIf = 'render_twitter=1';
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Facebook tags');
+    $set->icon = 'facebook';
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'render_facebook';
+      $f->label = __('Render Facebook tags');
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'facebook_app_id';
+      $f->label = __('Facebook app ID');
+      $f->icon = 'hashtag';
+      $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->requiredIf = 'render_facebook=1';
+      $f->showIf = 'render_facebook=1';
       $set->add($f);
 
     $inputfields->add($set);
