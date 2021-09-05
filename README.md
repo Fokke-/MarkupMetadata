@@ -62,9 +62,9 @@ echo $metadata->render();
 
 Set custom meta tag.
 
-- string `$tag` HTML tag name to use
-- array|null `$attrs` Optional array of HTML tag attributes in the following format: `'name' => 'value'`
-- string|null `$content` Optional inner content for the element. Most likely this will be used only for `<title>` tag.
+- `string $tag` HTML tag name to use
+- `array|null $attrs` Optional array of HTML tag attributes in the following format: `'name' => 'value'`
+- `string|null $content` Optional inner content for the element. Most likely this will be used only for `<title>` tag.
 
 ```php
 $metadata->setMeta('meta', [
@@ -72,6 +72,14 @@ $metadata->setMeta('meta', [
   'content' => 'Jerry Cotton',
 ]);
 // <meta name="author" content="Jerry Cotton">
+```
+
+### render()
+
+Render all meta tags
+
+```php
+$metadata->render();
 ```
 
 ## Configuration
@@ -97,13 +105,13 @@ This selector will be used to get current page title using `$page->get()` method
 
 ### siteName
 
-Type: `string`, Default: `Site name`
+Type: `string`, Default: `'Site name'`
 
-Value will be added to the document title after page title.
+Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.
 
 ### documentTitleSeparator
 
-Type: `string`, Default: `-`
+Type: `string`, Default: `'-'`
 
 Value will be used to separate page title and site name in document title.
 
@@ -111,13 +119,13 @@ Value will be used to separate page title and site name in document title.
 
 Type: `string`
 
-By default, document title will be built of page title, separator and site name. You can overwrite this property if you want a fully customized document title.
+By default, document title will be built of [pageTitle](#pagetitle), [documentTitleSeparator](#documenttitleseparator) and [siteName](#sitename). You can overwrite this property if you want a fully customized document title.
 
 ### baseUrl
 
-Type: `string`, Default: `https://domain.com`
+Type: `string`, Default: `'https://domain.com'`
 
-Used as a base for building the current page URL to be used in canonical meta tag, for example. Page URL with segments will be appended to the base URL.
+Used as a base for building the current page URL.
 
 ### pageUrl
 
@@ -133,7 +141,7 @@ Used in `description`, `og:description`, and `twitter:description` meta tags. If
 
 ### descriptionSelector
 
-Type: `string`
+Type: `string`, Default: `'summary'`
 
 This selector will be used to get current page description using `$page->get()` method.
 
@@ -145,19 +153,19 @@ Used in `keywords` meta tag. If unset, keywords of the current page will be used
 
 ### keywordsSelector
 
-Type: `string`
+Type: `string`, Default: `'keywords'`
 
 This selector will be used to get current page keywords using `$page->get()` method.
 
 ### charset
 
-Type: `string`, Default: `utf-8`
+Type: `string`, Default: `'utf-8'`
 
 Used in `charset` meta tag.
 
 ### viewport
 
-Type: `string`, Default: `width=device-width, initial-scale=1.0`
+Type: `string`, Default: `'width=device-width, initial-scale=1.0'`
 
 Used in `viewport` meta tag.
 
@@ -167,11 +175,11 @@ Type: `\ProcessWire\Pageimage`
 
 Used for `og:image` and `twitter:site` meta tags. By default, the module will attempt to get image from the current page by using [imageSelector](#imageselector). This image will be resized to the dimensions defined by [imageWidth](#imagewidth) and [imageHeight](#imageheight) properties.
 
-If you set image manually, **it will not be resized automatically**.
+**Note that if you set image manually, it will not be resized automatically**.
 
 ### imageSelector
 
-Type: `string`, default: `image`
+Type: `string`, default: `'image'`
 
 This selector will be used to get current page image using `$page->get()` method.
 
@@ -200,7 +208,7 @@ Toggle rendering of hreflang tags on/off. To enable, set value to `true`. In ord
 
 ### hreflangCodeField
 
-Type: `string`, Default: `languageCode`
+Type: `string`, Default: `'languageCode'`
 
 This field name will be used define language code for every language page.
 
@@ -212,7 +220,7 @@ Toggle rendering of Open Graph tags on/off. To disable, set value to `false`.
 
 ### og_type
 
-Type: `string`, Default: `website`
+Type: `string`, Default: `'website'`
 
 The type of the resource.
 
@@ -230,7 +238,7 @@ Twitter user name. Used in `twitter:site` and `twitter:creator` meta tags.
 
 ### twitterCard
 
-Type: `string`, Default: `summary_large_image`
+Type: `string`, Default: `'summary_large_image'`
 
 Twitter card type. Used in `twitter:card` meta tag.
 
@@ -244,4 +252,4 @@ Toggle rendering of Facebook tags on/off. To enable, set value to `true`.
 
 Type: `string`, Default: `null`
 
-Used in `fb:app_id` meta tag.
+Facebook application ID. Used in `fb:app_id` meta tag.
