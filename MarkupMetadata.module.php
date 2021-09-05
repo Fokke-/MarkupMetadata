@@ -3,6 +3,13 @@
 class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
   /**
+   * Array for meta tags
+   *
+   * @var array
+   */
+  private $tags = [];
+
+  /**
    * Module info
    *
    * @return Array
@@ -49,7 +56,6 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'twitterCard' => 'summary_large_image',
       'render_facebook' => 0,
       'facebookAppId' => '',
-      'tags' => [],
     ];
   }
 
@@ -68,17 +74,17 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    *
    * @return $this
    */
-  private function load() {
+  private function load() : object {
     // Dynamic properties
-    $this->pageTitle = $this->pageTitle ?? wire('page')->get($this->pageTitleSelector);
+    $this->pageTitle = $this->pageTitle ?? $this->page->get($this->pageTitleSelector);
     $this->documentTitle = $this->documentTitle ?? $this->pageTitle .' - '. $this->siteName;
     $this->pageUrl = $this->pageUrl ?? $this->getPageUrl();
-    $this->description = $this->description ?? wire('page')->get($this->descriptionSelector);
-    $this->keywords = $this->keywords ?? wire('page')->get($this->keywordsSelector);
+    $this->description = $this->description ?? $this->page->get($this->descriptionSelector);
+    $this->keywords = $this->keywords ?? $this->page->get($this->keywordsSelector);
 
     // Image
     if (!$this->image && $this->imageSelector) {
-      $this->image = wire('page')->get($this->imageSelector);
+      $this->image = $this->page->get($this->imageSelector);
 
       if ($this->image && ($this->imageWidth || $this->imageHeight)) {
         if ($this->imageWidth && $this->imageHeight) {
@@ -138,15 +144,17 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   /**
    * Get current page URL
    *
-   * @return string
+   * @return string|null
    */
-	private function getPageUrl () : string {
-		$url = rtrim($this->domain, '/') . wire('page')->url;
+	private function getPageUrl () : ?string {
+    if (empty($this->domain)) return null;
+
+		$url = rtrim($this->domain, '/') . $this->page->url;
 
 		if (wire('input')->urlSegmentStr) {
 			$url .= wire('input')->urlSegmentStr;
 
-			if (wire('page')->template->slashUrlSegments == 1) {
+			if ($this->page->template->slashUrlSegments == 1) {
 				$url .= '/';
 			}
 		}
@@ -227,7 +235,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if (!$this->render_hreflang) return null;
 
     // Make sure that PW language support is installed
-    if (!wire('modules')->isInstalled('LanguageSupportPageNames')) return null;
+    if (!$this->modules->isInstalled('LanguageSupportPageNames')) return null;
 
     // Make sure that language template has language code field defined.
 		if (!$this->user->language->template->hasField($this->hreflangCodeField)) return null;
@@ -239,9 +247,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     if (count($languages) < 2) return null;
 
     foreach ($languages as $l) {
-			if (!wire('page')->viewable($l)) continue;
+			if (!$this->page->viewable($l)) continue;
 
-      $out .= '<link rel="alternate" href="'. $this->domain . wire('page')->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
+      $out .= '<link rel="alternate" href="'. $this->domain . $this->page->localUrl($l) .'" hreflang="'. $l->{$this->hreflangCodeField} .'">';
     }
 
     return $out;
