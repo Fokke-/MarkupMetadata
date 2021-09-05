@@ -24,7 +24,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 110,
+      'version' => 111,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -59,7 +59,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'render_og' => 1,
       'og_type' => 'website',
       'render_twitter' => 0,
-      'twitter_name' => null,
+      'twitter_site' => null,
+      'twitter_creator' => null,
       'twitter_card' => 'summary_large_image',
       'render_facebook' => 0,
       'facebook_app_id' => null,
@@ -202,10 +203,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Twitter tags
     if ((bool) $this->render_twitter === true) {
       if (!empty($this->twitter_card)) $this->setMeta('meta', ['name' => 'twitter:card', 'content' => $this->twitter_card]);
-      if (!empty($this->twitter_name)) {
-        $this->setMeta('meta', ['name' => 'twitter:site', 'content' => $this->twitter_name]);
-        $this->setMeta('meta', ['name' => 'twitter:creator', 'content' => $this->twitter_name]);
-      }
+      if (!empty($this->twitter_site)) $this->setMeta('meta', ['name' => 'twitter:site', 'content' => $this->twitter_site]);
+      if (!empty($this->twitter_creator)) $this->setMeta('meta', ['name' => 'twitter:creator', 'content' => $this->twitter_creator]);
       if (!empty($this->page_title)) $this->setMeta('meta', ['name' => 'twitter:title', 'content' => $this->page_title]);
       if (!empty($this->description)) $this->setMeta('meta', ['name' => 'twitter:description', 'content' => $this->description]);
 
@@ -307,7 +306,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'site_name';
       $f->label = __('Site name');
-      $f->description = __('Value will be added to the document title after page title.');
+      $f->description = __('Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.');
       $f->icon = 'home';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
@@ -336,7 +335,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'charset';
       $f->label = __('Character set');
-      $f->description = __('Used in *charset* meta tag.');
+      $f->description = __('Used in `charset` meta tag.');
       $f->icon = 'keyboard-o';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
@@ -346,7 +345,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'viewport';
       $f->label = __('Viewport');
-      $f->description = __('Used in *viewport* meta tag.');
+      $f->description = __('Used in `viewport` meta tag.');
       $f->icon = 'desktop';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
@@ -362,7 +361,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'page_title_selector';
       $f->label = __('Page title selector');
-      $f->description = __('The following selector will be used to get current page title using $page->get() method.');
+      $f->description = __('This selector will be used to get current page title using `$page->get()` method.');
       $f->icon = 'header';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
@@ -372,7 +371,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'description_selector';
       $f->label = __('Description selector');
-      $f->description = __('The following selector will be used to get current page description using $page->get() method.');
+      $f->description = __('This selector will be used to get current page description using `$page->get()` method.');
       $f->icon = 'info-circle';
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -381,7 +380,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'keywords_selector';
       $f->label = __('Keywords selector');
-      $f->description = __('The following selector will be used to get current page keywords using $page->get() method.');
+      $f->description = __('This selector will be used to get current page keywords using `$page->get()` method.');
       $f->icon = 'tags';
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
@@ -476,7 +475,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
       $f = $modules->get('InputfieldText');
       $f->name = 'og_type';
-      $f->label = __('Open Graph site type');
+      $f->label = __('Open Graph page type');
+      $f->description = __('Open Graph type of the page/resource. Used in `og:type` meta tag.');
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default value') .': '. $defaults[$f->name];
       $f->required = true;
@@ -497,23 +497,32 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'twitter_name';
-      $f->label = __('Twitter name');
-      $f->icon = 'user';
+      $f->name = 'twitter_card';
+      $f->label = __('Twitter card type');
+      $f->description = __('Twitter card type, which can be one of `summary`, `summary_large_image`, `app`, or `player`. Used in `twitter:card` meta tag.');
+      $f->icon = 'id-card-o';
       $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default value') .': '. $defaults[$f->name];
       $f->required = true;
       $f->requiredIf = 'render_twitter=1';
       $f->showIf = 'render_twitter=1';
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'twitter_card';
-      $f->label = __('Twitter card type');
-      $f->icon = 'id-card-o';
+      $f->name = 'twitter_site';
+      $f->label = __('Twitter site');
+      $f->description = __('Twitter user name. Used in `twitter:site` meta tag.');
+      $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $f->required = true;
-      $f->requiredIf = 'render_twitter=1';
+      $f->showIf = 'render_twitter=1';
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'twitter_creator';
+      $f->label = __('Twitter creator');
+      $f->description = __('Twitter user name. Used in `twitter:creator` meta tag.');
+      $f->icon = 'user';
+      $f->attr('value', $data[$f->name]);
       $f->showIf = 'render_twitter=1';
       $set->add($f);
 
@@ -532,10 +541,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'facebook_app_id';
       $f->label = __('Facebook app ID');
+      $f->description = __('Facebook application ID. Used in `fb:app_id` meta tag.');
       $f->icon = 'hashtag';
       $f->attr('value', $data[$f->name]);
-      $f->required = true;
-      $f->requiredIf = 'render_facebook=1';
       $f->showIf = 'render_facebook=1';
       $set->add($f);
 

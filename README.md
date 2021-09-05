@@ -2,7 +2,7 @@
 
 ProcessWire 3.x markup module for rendering meta tags in HTML document head section. Note that this module is not full-blown SEO solution, but rather a simple tool for rendering meta tags based on module configuration. Adding custom meta tags is also supported.
 
-## Built-in  meta tags
+## Built-in meta tags
 
 The following meta tags are supported out-of-the-box:
 
@@ -173,7 +173,7 @@ Used in `viewport` meta tag.
 
 Type: `\ProcessWire\Pageimage`
 
-Used for `og:image` and `twitter:site` meta tags. By default, the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
+Used for `og:image` and `twitter:image` meta tags. By default, the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
 
 **Note that if you set image manually, it will not be resized automatically**.
 
@@ -222,7 +222,7 @@ Toggle rendering of Open Graph tags on/off. To disable, set value to `false`.
 
 Type: `string`, Default: `'website'`
 
-The type of the resource.
+Open Graph type of the page/resource. Used in `og:type` meta tag.
 
 ### render_twitter
 
@@ -230,17 +230,23 @@ Type: `boolean`, Default: `false`
 
 Toggle rendering of Twitter tags on/off. To enable, set value to `true`.
 
-### twitter_name
-
-Type: `string`, Default: `null`
-
-Twitter user name. Used in `twitter:site` and `twitter:creator` meta tags.
-
 ### twitter_card
 
 Type: `string`, Default: `'summary_large_image'`
 
-Twitter card type. Used in `twitter:card` meta tag.
+Twitter card type, which can be one of `summary`, `summary_large_image`, `app`, or `player`. Used in `twitter:card` meta tag.
+
+### twitter_site
+
+Type: `string`, Default: `null`
+
+Twitter user name. Used in `twitter:site` meta tag.
+
+### twitter_creator
+
+Type: `string`, Default: `null`
+
+Twitter user name. Used in `twitter:creator` meta tag.
 
 ### render_facebook
 
