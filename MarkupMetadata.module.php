@@ -326,7 +326,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'baseUrl';
       $f->label = __('Base URL');
-      $f->description = __('Used as a base for building the current page URL. Page URL with segments will be appended to the base URL.');
+      $f->description = __('Used as a base for building the current page URL.');
       $f->notes = __('Enter value without trailing slash.');
       $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
