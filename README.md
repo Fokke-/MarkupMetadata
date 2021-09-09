@@ -88,7 +88,14 @@ After you have installed the module, check module configuration page for availab
 
 ```php
 // Add this line before rendering
-$metadata->site_name = 'My site';
+$metadata->site_name = 'My custom site name';
+
+// Set multiple properties
+$metadata->setArray([
+  'page_title' => 'My custom title',
+  'site_name' => 'My custom site name',
+  'description' => 'My custom description',
+]);
 ```
 
 ### page_title
