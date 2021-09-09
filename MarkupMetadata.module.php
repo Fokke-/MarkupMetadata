@@ -148,38 +148,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Truncate description
     $this->description = $this->sanitizer->truncate($this->description, (int) $this->description_max_length, $this->description_truncate_mode);
 
-    // Try to find image if it's not already defined
-    if (
-      empty($this->image) &&
-      !empty($this->image_selector)
-    ) {
-      $imageResult = $this->page->get($this->image_selector);
-      $image = null;
-
-      if (!empty($imageResult)) {
-        // If image field contains multiple images, get the first one
-        if ($imageResult instanceof \ProcessWire\Pageimages) {
-          $image = $imageResult->first();
-        } else if ($imageResult instanceof \ProcessWire\Pageimage) {
-          $image = $imageResult;
-        } else {
-          $image = null;
-        }
-
-        // Resize image
-        if (!empty($image)) {
-          if (!empty($this->image_width) && !empty($this->image_height)) {
-            $this->image = $image->size($this->image_width, $this->image_height);
-          } else if (!empty($this->image_width)) {
-            $this->image = $image->width($this->image_width);
-          } else if (!empty($this->image_height)) {
-            $this->image = $image->height($this->image_height);
-          } else {
-            $this->image = null;
-          }
-        }
-      }
-    }
+    // Get image
+    $this->image = $this->getImage();
 
     // General tags
     if (!empty($this->document_title)) $this->setMeta('title', null, $this->document_title);
@@ -252,6 +222,41 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     return $this;
 	}
+
+  /**
+   * Get image for the current page
+   *
+   * @return \ProcessWire\Pageimage|null Resized image
+   */
+  protected function getImage () : ?\ProcessWire\Pageimage {
+    $image = $this->image;
+
+    // Try to find image with selector if it's not already defined
+    if (empty($image) && !empty($this->image_selector)) {
+      $image = $this->page->get($this->image_selector) ?? null;
+    }
+
+    // Bail out if we got image, or if it's not Pageimages or Pageimage object
+    if (empty($image) || (!$image instanceof \ProcessWire\Pageimages && !$image instanceof \ProcessWire\Pageimage)) {
+      return null;
+    }
+
+    // If image object contains multiple images, get the first one
+    if ($image instanceof \ProcessWire\Pageimages) {
+      $image = $image->first();
+    }
+
+    // Resize image
+    if (!empty($this->image_width) && !empty($this->image_height)) {
+      return $image->size($this->image_width, $this->image_height);
+    } else if (!empty($this->image_width)) {
+      return $image->width($this->image_width);
+    } else if (!empty($this->image_height)) {
+      return $image->height($this->image_height);
+    } else {
+      return null;
+    }
+  }
 
   /**
    * Render meta tags
@@ -446,9 +451,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $inputfields->add($set);
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Images');
+    $set->label = __('Image');
     $set->icon = 'image';
-    $set->description = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
+    $set->description = __('Used in `og:image` and `twitter:image` meta tags.');
 
       $f = $modules->get('InputfieldText');
       $f->name = 'image_selector';

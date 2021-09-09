@@ -192,9 +192,7 @@ Select truncate mode to use with [`$sanitizer->truncate()`](https://processwire.
 
 Type: `\ProcessWire\Pageimage`
 
-Used for `og:image` and `twitter:image` meta tags. By default the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
-
-**Note that if you set image manually, it will not be resized automatically**.
+Used in `og:image` and `twitter:image` meta tags. By default the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
 
 ### image_selector
 
@@ -206,13 +204,13 @@ This selector will be used to get current page image using `$page->get()` method
 
 Type: `integer`, Default: `1200`
 
-If image was set automatically using [image_selector](#imageselector), this value will be used as width when resizing that image.
+Image will be resized to specified width.
 
 ### image_height
 
 Type: `integer`, Default: `630`
 
-If image was set automatically using [image_selector](#imageselector), this value will be used as height when resizing that image.
+Image will be resized to specified height.
 
 ### render_hreflang
 
