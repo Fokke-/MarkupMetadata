@@ -98,71 +98,17 @@ $metadata->setArray([
 ]);
 ```
 
-### page_title
-
-Type: `string`
-
-Value will be used in `title`, `og:title` and `twitter:title` meta tags. If unset, title of the current page will be used. See [page_title_selector](#pagetitleselector).
-
-### page_title_selector
-
-Type: `string`
-
-This selector will be used to get current page title using `$page->get()` method.
-
-### site_name
-
-Type: `string`, Default: `'Site name'`
-
-Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.
-
-### document_title_separator
-
-Type: `string`, Default: `'-'`
-
-Value will be used to separate page title and site name in document title.
-
-### document_title
-
-Type: `string`
-
-By default, document title will be built of [page_title](#pagetitle), [document_title_separator](#documenttitleseparator) and [site_name](#sitename). You can overwrite this property if you want a fully customized document title.
-
-### base_url
-
-Type: `string`, Default: `'https://domain.com'`
-
-Used as a base for building the current page URL.
-
 ### page_url
 
 Type: `string`
 
 This URL will be used in `canonical` and `og:url` meta tags. If unset, page URL will be dynamically built of [base_url](#baseurl), current page URL, and URL segments (if defined).
 
-### description
+### base_url
 
-Type: `string`
+Type: `string`, Default: `'https://domain.com'`
 
-Used in `description`, `og:description`, and `twitter:description` meta tags. If unset, description of the current page will be used. See [description_selector](#descriptionselector).
-
-### description_selector
-
-Type: `string`, Default: `'summary'`
-
-This selector will be used to get current page description using `$page->get()` method.
-
-### keywords
-
-Type: `string`
-
-Used in `keywords` meta tag. If unset, keywords of the current page will be used. See [keywords_selector](#keywordsselector).
-
-### keywords_selector
-
-Type: `string`, Default: `'keywords'`
-
-This selector will be used to get current page keywords using `$page->get()` method.
+Used as a base for building the current page URL.
 
 ### charset
 
@@ -176,11 +122,77 @@ Type: `string`, Default: `'width=device-width, initial-scale=1.0'`
 
 Used in `viewport` meta tag.
 
+### keywords
+
+Type: `string`
+
+Used in `keywords` meta tag. If unset, keywords of the current page will be used. See [keywords_selector](#keywordsselector).
+
+### keywords_selector
+
+Type: `string`, Default: `'keywords'`
+
+This selector will be used to get current page keywords using `$page->get()` method.
+
+### document_title
+
+Type: `string`
+
+By default document title will be built of [page_title](#pagetitle), [document_title_separator](#documenttitleseparator) and [site_name](#sitename). You can overwrite this property if you want a fully customized document title.
+
+### page_title
+
+Type: `string`
+
+Value will be used in `title`, `og:title` and `twitter:title` meta tags. If unset, title of the current page will be used. See [page_title_selector](#pagetitleselector).
+
+### page_title_selector
+
+Type: `string`
+
+This selector will be used to get current page title using `$page->get()` method.
+
+### document_title_separator
+
+Type: `string`, Default: `'-'`
+
+Value will be used to separate page title and site name in document title.
+
+### site_name
+
+Type: `string`, Default: `'Site name'`
+
+Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.
+
+### description
+
+Type: `string`
+
+Used in `description`, `og:description`, and `twitter:description` meta tags. If unset, description of the current page will be used. See [description_selector](#descriptionselector).
+
+### description_selector
+
+Type: `string`, Default: `'summary'`
+
+This selector will be used to get current page description using `$page->get()` method.
+
+### description_max_length
+
+Type: `integer`, Default: `'160'`
+
+Description will be truncated to the specified number of characters.
+
+### description_truncate_mode
+
+Type: `string`, Default: `'word'`
+
+Select truncate mode to use with [`$sanitizer->truncate()`](https://processwire.com/api/ref/sanitizer/truncate/) method.
+
 ### image
 
 Type: `\ProcessWire\Pageimage`
 
-Used for `og:image` and `twitter:image` meta tags. By default, the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
+Used for `og:image` and `twitter:image` meta tags. By default the module will attempt to get image from the current page by using [image_selector](#imageselector). This image will be resized to the dimensions defined by [image_width](#imagewidth) and [image_height](#imageheight) properties.
 
 **Note that if you set image manually, it will not be resized automatically**.
 
