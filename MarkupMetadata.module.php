@@ -43,12 +43,13 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    */
   public static function getDefaultData() : array {
     return [
-      'site_name' => 'Site name',
-      'document_title_separator' => '-',
       'base_url' => 'https://domain.com',
       'charset' => 'utf-8',
       'viewport' => 'width=device-width, initial-scale=1.0',
+      'keywords_selector' => 'keywords',
       'page_title_selector' => 'title',
+      'document_title_separator' => '-',
+      'site_name' => 'Site name',
       'description_selector' => 'summary',
       'description_max_length' => 160,
       'description_truncate_mode' => 'word',
@@ -60,9 +61,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'render_og' => 1,
       'og_type' => 'website',
       'render_twitter' => 0,
+      'twitter_card' => 'summary_large_image',
       'twitter_site' => null,
       'twitter_creator' => null,
-      'twitter_card' => 'summary_large_image',
       'render_facebook' => 0,
       'facebook_app_id' => null,
     ];
@@ -316,29 +317,10 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $set->icon = 'home';
 
       $f = $modules->get('InputfieldText');
-      $f->name = 'site_name';
-      $f->label = __('Site name');
-      $f->description = __('Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.');
-      $f->icon = 'home';
-      $f->attr('value', $data[$f->name]);
-      $f->required = true;
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
-      $f->name = 'document_title_separator';
-      $f->label = __('Document title separator');
-      $f->description = __('Value will be used to separate page title and site name in document title.');
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
-      $f->icon = 'ellipsis-h';
-      $f->attr('value', $data[$f->name]);
-      $f->required = true;
-      $set->add($f);
-
-      $f = $modules->get('InputfieldText');
       $f->name = 'base_url';
       $f->label = __('Base URL');
       $f->description = __('Used as a base for building the current page URL.');
-      $f->notes = __('Enter value without trailing slash.');
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
@@ -351,7 +333,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->icon = 'keyboard-o';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -361,31 +344,76 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->icon = 'desktop';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'keywords_selector';
+      $f->label = __('Keywords selector');
+      $f->description = __('This selector will be used to get current page keywords using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
+      $f->icon = 'tags';
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);
 
     $set = $modules->get("InputfieldFieldset");
-    $set->label = __('Field mapping');
-    $set->icon = 'link';
+    $set->label = __('Document title');
+    $set->icon = 'header';
 
       $f = $modules->get('InputfieldText');
       $f->name = 'page_title_selector';
       $f->label = __('Page title selector');
-      $f->description = __('This selector will be used to get current page title using `$page->get()` method.');
-      $f->icon = 'header';
+      $f->description = __('This selector will be used to get current page title using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
+      $f->icon = 'search';
       $f->attr('value', $data[$f->name]);
       $f->required = true;
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'document_title_separator';
+      $f->label = __('Document title separator');
+      $f->description = __('Value will be used to separate page title and site name in document title.');
+      $f->icon = 'ellipsis-h';
+      $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'site_name';
+      $f->label = __('Site name');
+      $f->description = __('Value will be added to the document title after page title. It will also be used in `og:site_name` meta tag.');
+      $f->icon = 'home';
+      $f->attr('value', $data[$f->name]);
+      $f->required = true;
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+    $inputfields->add($set);
+
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Description');
+    $set->description = __('Used in `description`, `og:description`, and `twitter:description` meta tags.');
+    $set->icon = 'info-circle';
 
       $f = $modules->get('InputfieldText');
       $f->name = 'description_selector';
       $f->label = __('Description selector');
-      $f->description = __('This selector will be used to get current page description using `$page->get()` method.');
-      $f->icon = 'info-circle';
+      $f->description = __('This selector will be used to get current page description using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
+      $f->icon = 'search';
+      $f->columnWidth = 50;
       $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
       $f = $modules->get('InputfieldInteger');
       $f->name = 'description_max_length';
       $f->label = __('Description maximum length');
@@ -412,41 +440,48 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       foreach ($truncateModes as $value => $label) {
         $f->addOption($value, $label);
       }
+
       $set->add($f);
 
-      $imageSet = $modules->get("InputfieldFieldset");
-      $imageSet->label = __('Images');
-      $imageSet->icon = 'image';
-      $imageSet->description = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
+    $inputfields->add($set);
 
-        $f = $modules->get('InputfieldText');
-        $f->name = 'image_selector';
-        $f->label = __('Image selector');
-        $f->icon = 'image';
-        $f->notes = __('Default value') .': '. $defaults[$f->name];
-        $f->columnWidth = 50;
-        $f->attr('value', $data[$f->name]);
-        $imageSet->add($f);
+    $set = $modules->get("InputfieldFieldset");
+    $set->label = __('Images');
+    $set->icon = 'image';
+    $set->description = __('Settings defined here only apply to dynamically populated meta images. If you set meta image directly using the "image" property, it will not be resized automatically.');
 
-        $f = $modules->get('InputfieldInteger');
-        $f->name = 'image_width';
-        $f->label = __('Image width');
-        $f->icon = 'arrows-h';
-        $f->notes = __('Default value') .': '. $defaults[$f->name];
-        $f->columnWidth = 25;
-        $f->attr('value', $data[$f->name]);
-        $imageSet->add($f);
+      $f = $modules->get('InputfieldText');
+      $f->name = 'image_selector';
+      $f->label = __('Image selector');
+      $f->description = __('This selector will be used to get current page image using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
+      $f->icon = 'search';
+      $f->columnWidth = 50;
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
 
-        $f = $modules->get('InputfieldInteger');
-        $f->name = 'image_height';
-        $f->label = __('Image height');
-        $f->icon = 'arrows-v';
-        $f->notes = __('Default value') .': '. $defaults[$f->name];
-        $f->columnWidth = 25;
-        $f->attr('value', $data[$f->name]);
-        $imageSet->add($f);
+      $f = $modules->get('InputfieldInteger');
+      $f->name = 'image_width';
+      $f->label = __('Image width');
+      $f->description = __('Image will be resized to specified width.');
+      $f->icon = 'arrows-h';
+      $f->columnWidth = 25;
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
 
-      $set->add($imageSet);
+      $f = $modules->get('InputfieldInteger');
+      $f->name = 'image_height';
+      $f->label = __('Image height');
+      $f->description = __('Image will be resized to specified height.');
+      $f->icon = 'arrows-v';
+      $f->columnWidth = 25;
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
 
     $inputfields->add($set);
 
@@ -458,6 +493,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'render_hreflang';
       $f->label = __('Render hreflang tags');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldMarkup');
@@ -474,7 +510,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
           <li>'. __('Language code field is populated in every language page. If the language code field is empty, the hreflang tag will not be rendered for that language.') .'</li>
         </ol>
       ';
-      $f->notes = __('[Read more about hreflang tags.](https://support.google.com/webmasters/answer/189077?hl=en)');
+      $f->notes = __('[Read more about hreflang tags](https://support.google.com/webmasters/answer/189077?hl=en).');
       $f->showIf = 'render_hreflang=1';
       $set->add($f);
 
@@ -483,10 +519,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->label = __('Hreflang language/region code field');
       $f->description = __('The following field name will be used define language code for every language page.');
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
       $f->required = true;
       $f->requiredIf = 'render_hreflang=1';
       $f->showIf = 'render_hreflang=1';
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);
@@ -499,6 +536,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'render_og';
       $f->label = __('Render Open Graph tags');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -506,10 +544,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->label = __('Open Graph page type');
       $f->description = __('Open Graph type of the page/resource. Used in `og:type` meta tag.');
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
       $f->required = true;
       $f->requiredIf = 'render_og=1';
       $f->showIf = 'render_og=1';
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);
@@ -522,6 +561,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'render_twitter';
       $f->label = __('Render Twitter tags');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -530,10 +570,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->description = __('Twitter card type, which can be one of `summary`, `summary_large_image`, `app`, or `player`. Used in `twitter:card` meta tag.');
       $f->icon = 'id-card-o';
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
       $f->required = true;
       $f->requiredIf = 'render_twitter=1';
       $f->showIf = 'render_twitter=1';
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -543,6 +584,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->icon = 'globe';
       $f->attr('value', $data[$f->name]);
       $f->showIf = 'render_twitter=1';
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -552,6 +594,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->icon = 'user';
       $f->attr('value', $data[$f->name]);
       $f->showIf = 'render_twitter=1';
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);
@@ -564,6 +607,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->name = 'render_facebook';
       $f->label = __('Render Facebook tags');
       $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldText');
@@ -573,6 +617,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->icon = 'hashtag';
       $f->attr('value', $data[$f->name]);
       $f->showIf = 'render_facebook=1';
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);
