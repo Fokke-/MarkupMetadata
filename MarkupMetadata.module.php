@@ -24,14 +24,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 111,
+      'version' => 112,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
       'autoload' => false,
       'icon' => 'hashtag',
       'requires' => [
-        'ProcessWire>=3.0.0',
+        'ProcessWire>=3.0.101',
       ],
     ];
   }
