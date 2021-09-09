@@ -50,7 +50,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'viewport' => 'width=device-width, initial-scale=1.0',
       'page_title_selector' => 'title',
       'description_selector' => 'summary',
-      'keywords_selector' => 'keywords',
+      'description_max_length' => 160,
+      'description_truncate_mode' => 'word',
       'image_selector' => 'image',
       'image_width' => 1200,
       'image_height' => 630,
@@ -142,6 +143,9 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
         $this->site_name ?? null,
       ]));
     }
+
+    // Truncate description
+    $this->description = $this->sanitizer->truncate($this->description, (int) $this->description_max_length, $this->description_truncate_mode);
 
     // Try to find image if it's not already defined
     if (
@@ -297,6 +301,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     $modules = wire('modules');
 
+    // Truncate modes
+    $truncateModes = [
+      'word' => __('Word'),
+      'punctuation' => __('Punctuation'),
+      'sentence' => __('Sentence'),
+      'block' => __('Block'),
+    ];
+
     $inputfields = new InputfieldWrapper();
 
     $set = $modules->get("InputfieldFieldset");
@@ -374,16 +386,32 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->description = __('This selector will be used to get current page description using `$page->get()` method.');
       $f->icon = 'info-circle';
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
+      $f = $modules->get('InputfieldInteger');
+      $f->name = 'description_max_length';
+      $f->label = __('Description maximum length');
+      $f->description = __('Description will be truncated to the specified number of characters.');
+      $f->icon = 'text-width';
+      $f->columnWidth = 25;
+      $f->required = true;
+      $f->attr('value', $data[$f->name]);
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
-      $f = $modules->get('InputfieldText');
-      $f->name = 'keywords_selector';
-      $f->label = __('Keywords selector');
-      $f->description = __('This selector will be used to get current page keywords using `$page->get()` method.');
-      $f->icon = 'tags';
+      $f = $modules->get('InputfieldSelect');
+      $f->name = 'description_truncate_mode';
+      $f->label = __('Description truncate mode');
+      $f->description = __('Select truncate mode to use with [`$sanitizer->truncate()`](https://processwire.com/api/ref/sanitizer/truncate/) method.');
+      $f->icon = 'cog';
+      $f->columnWidth = 25;
+      $f->required = true;
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
       $f->attr('value', $data[$f->name]);
-      $f->notes = __('Default value') .': '. $defaults[$f->name];
+
+      foreach ($truncateModes as $value => $label) {
+        $f->addOption($value, $label);
+      }
       $set->add($f);
 
       $imageSet = $modules->get("InputfieldFieldset");
