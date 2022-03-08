@@ -246,6 +246,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $image = $image->first();
     }
 
+    // Pageimages might be empty
+    if (empty($image)) {
+      return null;
+    }
+
     // Resize image
     if (!empty($this->image_width) && !empty($this->image_height)) {
       return $image->size($this->image_width, $this->image_height);
