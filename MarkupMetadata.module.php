@@ -24,7 +24,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 112,
+      'version' => 113,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -229,33 +229,38 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    * @return \ProcessWire\Pageimage|null Resized image
    */
   protected function getImage () : ?\ProcessWire\Pageimage {
-    $image = $this->image;
+    $src = $this->image;
 
     // Try to find image with selector if it's not already defined
-    if (empty($image) && !empty($this->image_selector)) {
-      $image = $this->page->get($this->image_selector) ?? null;
+    if (empty($src) && !empty($this->image_selector)) {
+      $src = $this->page->get($this->image_selector) ?? null;
     }
 
-    // Bail out if we got image, or if it's not Pageimages or Pageimage object
-    if (empty($image) || (!$image instanceof \ProcessWire\Pageimages && !$image instanceof \ProcessWire\Pageimage)) {
+    // Bail out if...
+    // - Source is empty
+    // - Source is not Pageimages or Pageimage object
+    // - Source is an empty Pageimages object
+    if (
+      empty($src) ||
+      (!$src instanceof \ProcessWire\Pageimages && !$src instanceof \ProcessWire\Pageimage) ||
+      ($src instanceof \ProcessWire\Pageimages && !$src->count())
+    ) {
       return null;
     }
 
-    // If image object contains multiple images, get the first one
-    if ($image instanceof \ProcessWire\Pageimages) {
-      $image = $image->first();
-    }
+    // If source is Pageimages object, get the first one
+    if ($src instanceof \ProcessWire\Pageimages) $src = $src->first();
 
     // Resize image
     if (!empty($this->image_width) && !empty($this->image_height)) {
-      return $image->size($this->image_width, $this->image_height);
+      return $src->size($this->image_width, $this->image_height);
     } else if (!empty($this->image_width)) {
-      return $image->width($this->image_width);
+      return $src->width($this->image_width);
     } else if (!empty($this->image_height)) {
-      return $image->height($this->image_height);
-    } else {
-      return null;
+      return $src->height($this->image_height);
     }
+
+    return null;
   }
 
   /**
