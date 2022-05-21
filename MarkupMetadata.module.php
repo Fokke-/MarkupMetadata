@@ -60,7 +60,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'hreflang_code_field' => 'languageCode',
       'render_og' => 1,
       'og_type' => 'website',
-      'render_twitter' => 0,
+      'render_twitter' => 1,
       'twitter_card' => 'summary_large_image',
       'twitter_site' => null,
       'twitter_creator' => null,
