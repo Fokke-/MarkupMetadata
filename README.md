@@ -212,6 +212,12 @@ Type: `integer`, Default: `630`
 
 Image will be resized to specified height.
 
+### image_inherit
+
+Type: `boolean`, Default: `false`
+
+If the image cannot be found from the current page, the module will try to find the image from the nearest parent page (including home page).
+
 ### image_fallback_page
 
 Type: `\ProcessWire\Page`, Default: `null`

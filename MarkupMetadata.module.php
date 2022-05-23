@@ -56,6 +56,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'image_selector' => 'image',
       'image_width' => 1200,
       'image_height' => 630,
+      'image_inherit' => 0,
       'image_fallback_page' => null,
       'render_hreflang' => 0,
       'hreflang_code_field' => 'languageCode',
@@ -158,6 +159,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       // Try to find image from the current page
       $image = $this->findImageFromPage($this->page);
       if (!empty($image)) return $this->resizeImage($image);
+
+      // Try to find image from the nearest parent
+      if ((bool) $this->image_inherit === true && $this->page->parents->count()) {
+        foreach ($this->page->parents->reverse() as $parent) {
+          $image = $this->findImageFromPage($parent);
+          if (!empty($image)) return $this->resizeImage($image);
+        }
+      }
 
       // Try to find image from the fallback page
       $image = $this->findImageFromPage($this->pages->findOne((int) $this->image_fallback_page));
@@ -284,7 +293,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    * @return \ProcessWire\Pageimage|null Resized image
    */
   protected function resizeImage (?\Processwire\Pageimage $image = null) : ?\ProcessWire\Pageimage {
-    if (empty($image) || !$image instanceof \ProcessWire\Pageimage) return null;
+    if (empty($image)) return null;
 
     // Resize image
     $width = (int) $this->image_width;
@@ -529,6 +538,15 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
       $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+      $f = $modules->get('InputfieldCheckbox');
+      $f->name = 'image_inherit';
+      $f->label = __('Inherit image from the nearest parent page (including home page)');
+      $f->description = __('If the image cannot be found from the current page, the module will try to find the image from the nearest parent page.');
+      $f->icon = 'sort-numeric-desc';
+      $f->attr('checked', ($data[$f->name] ? 'checked' : ''));
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
       $f = $modules->get('InputfieldPageListSelect');
