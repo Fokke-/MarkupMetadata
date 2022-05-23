@@ -24,7 +24,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 113,
+      'version' => 114,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -56,6 +56,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'image_selector' => 'image',
       'image_width' => 1200,
       'image_height' => 630,
+      'image_fallback_page' => null,
       'render_hreflang' => 0,
       'hreflang_code_field' => 'languageCode',
       'render_og' => 1,
@@ -149,7 +150,21 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $this->description = $this->sanitizer->truncate($this->description, (int) $this->description_max_length, $this->description_truncate_mode);
 
     // Get image
-    $this->image = $this->getImage();
+    $this->image = (function () {
+      // Try to use possibly pre-defined image
+      $image = $this->resolveImage($this->image);
+      if (!empty($image)) return $this->resizeImage($image);
+
+      // Try to find image from the current page
+      $image = $this->findImageFromPage($this->page);
+      if (!empty($image)) return $this->resizeImage($image);
+
+      // Try to find image from the fallback page
+      $image = $this->findImageFromPage($this->pages->findOne((int) $this->image_fallback_page));
+      if (!empty($image)) return $this->resizeImage($image);
+
+      return null;
+    })();
 
     // General tags
     if (!empty($this->document_title)) $this->setMeta('title', null, $this->document_title);
@@ -224,43 +239,66 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 	}
 
   /**
-   * Get image for the current page
+   * Resolve image
    *
-   * @return \ProcessWire\Pageimage|null Resized image
+   * Validates an image object and returns it, if it's in supported format (PageImage or Pageimages).
+   * If Pageimages object is passed, the first image will be returned.
+   *
+   * @param mixed $src Image to validate
+   * @return \ProcessWire\Pageimage|null
    */
-  protected function getImage () : ?\ProcessWire\Pageimage {
-    $src = $this->image;
-
-    // Try to find image with selector if it's not already defined
-    if (empty($src) && !empty($this->image_selector)) {
-      $src = $this->page->get($this->image_selector) ?? null;
-    }
-
-    // Bail out if...
-    // - Source is empty
-    // - Source is not Pageimages or Pageimage object
-    // - Source is an empty Pageimages object
+  protected function resolveImage ($src = null) : ?\ProcessWire\Pageimage {
     if (
       empty($src) ||
-      (!$src instanceof \ProcessWire\Pageimages && !$src instanceof \ProcessWire\Pageimage) ||
+      (!$src instanceof \ProcessWire\Pageimage && !$src instanceof \ProcessWire\Pageimages) ||
       ($src instanceof \ProcessWire\Pageimages && !$src->count())
     ) {
       return null;
     }
 
     // If source is Pageimages object, get the first one
-    if ($src instanceof \ProcessWire\Pageimages) $src = $src->first();
+    if ($src instanceof \ProcessWire\Pageimages) return $src->first();
+
+    return $src;
+  }
+
+  /**
+   * Find image from the given page
+   *
+   * @param \Processwire\Page|null Page to search from
+   * @return \ProcessWire\Pageimage|null
+   */
+  protected function findImageFromPage (?\ProcessWire\Page $srcPage = null) : ?\ProcessWire\Pageimage {
+    if (empty($srcPage) || empty($this->image_selector)) return null;
+
+    // Try to find image with selector
+    $image = $srcPage->get($this->image_selector) ?? null;
+
+    return $this->resolveImage($image);
+  }
+
+  /**
+   * Resize image
+   *
+   * @param \Processwire\Pageimage|null $image Image to resize
+   * @return \ProcessWire\Pageimage|null Resized image
+   */
+  protected function resizeImage (?\Processwire\Pageimage $image = null) : ?\ProcessWire\Pageimage {
+    if (empty($image) || !$image instanceof \ProcessWire\Pageimage) return null;
 
     // Resize image
-    if (!empty($this->image_width) && !empty($this->image_height)) {
-      return $src->size($this->image_width, $this->image_height);
-    } else if (!empty($this->image_width)) {
-      return $src->width($this->image_width);
-    } else if (!empty($this->image_height)) {
-      return $src->height($this->image_height);
+    $width = (int) $this->image_width;
+    $height = (int) $this->image_height;
+
+    if (!empty($width) && !empty($height)) {
+      return $image->size($width, $height);
+    } else if (!empty($width)) {
+      return $image->width($width);
+    } else if (!empty($height)) {
+      return $image->height($height);
     }
 
-    return null;
+    return $image;
   }
 
   /**
@@ -491,6 +529,15 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
       $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+      $f = $modules->get('InputfieldPageListSelect');
+      $f->name = 'image_fallback_page';
+      $f->label = __('Fallback page for image');
+      $f->description = __('If the image cannot be found from the current page, the module will try to find the image from the given page. Use this to define default image for all pages. The selector defined above will be used to find the image.');
+      $f->icon = 'life-ring';
+      $f->attr('value', $data[$f->name]);
+      $f->notes = sprintf(__('API: `$module->%s`'), $f->name);
       $set->add($f);
 
     $inputfields->add($set);

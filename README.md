@@ -212,6 +212,12 @@ Type: `integer`, Default: `630`
 
 Image will be resized to specified height.
 
+### image_fallback_page
+
+Type: `\ProcessWire\Page`, Default: `null`
+
+If the image cannot be found from the current page, the module will try to find the image from the given page. Use this to define default image for all pages. The selector defined above will be used to find the image.
+
 ### render_hreflang
 
 Type: `boolean`, Default: `false`
