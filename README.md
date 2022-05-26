@@ -1,6 +1,6 @@
 # Markup Metadata
 
-ProcessWire 3.x markup module for rendering meta tags in HTML document head section. Note that this module is not full-blown SEO solution, but rather a simple tool for rendering meta tags based on module configuration. Adding custom meta tags is also supported.
+ProcessWire markup module for rendering meta tags in HTML document head section. Note that this module is not full-blown SEO solution, but rather a simple tool for rendering meta tags based on module configuration. Adding custom meta tags is also supported.
 
 ## Built-in meta tags
 
@@ -22,6 +22,7 @@ The following meta tags are supported out-of-the-box:
   - og:image
   - og:image:width
   - og:image:height
+  - og:image:alt
 - Twitter meta tags
   - twitter:card
   - twitter:site
@@ -29,6 +30,7 @@ The following meta tags are supported out-of-the-box:
   - twitter:title
   - twitter:description
   - twitter:image
+  - twitter:image:alt
 - Facebook meta tags
   - fb:app_id
 
@@ -211,6 +213,12 @@ Image will be resized to specified width.
 Type: `integer`, Default: `630`
 
 Image will be resized to specified height.
+
+### image_alt_field
+
+Type: `string`, Default: `alt`
+
+The value of this field will be used as an alternative text of the image. Enable custom fields for your image field and specify the field name.
 
 ### image_inherit
 

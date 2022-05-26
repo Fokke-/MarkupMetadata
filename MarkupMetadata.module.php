@@ -17,6 +17,13 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public $image = null;
 
   /**
+   * Alternative text for image
+   *
+   * @var string|null
+   */
+  public $image_alt = null;
+
+  /**
    * Module info
    *
    * @return Array
@@ -24,14 +31,14 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 114,
+      'version' => 120,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
       'autoload' => false,
       'icon' => 'hashtag',
       'requires' => [
-        'ProcessWire>=3.0.101',
+        'ProcessWire>=3.0.142',
       ],
     ];
   }
@@ -56,6 +63,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       'image_selector' => 'image',
       'image_width' => 1200,
       'image_height' => 630,
+      'image_alt_field' => 'alt',
       'image_inherit' => 0,
       'image_fallback_page' => null,
       'render_hreflang' => 0,
@@ -175,6 +183,13 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       return null;
     })();
 
+    // Get alternative text for image
+    $this->image_alt = (function () {
+      if (empty($this->image) || empty($this->image_alt_field)) return null;
+
+      return $this->image->get((string) $this->image_alt_field);
+    })();
+
     // General tags
     if (!empty($this->document_title)) $this->setMeta('title', null, $this->document_title);
     if (!empty($this->charset)) $this->setMeta('meta', ['charset' => $this->charset]);
@@ -196,6 +211,10 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
         $this->setMeta('meta', ['property' => 'og:image', 'content' => $this->image->httpUrl]);
         $this->setMeta('meta', ['property' => 'og:image:width', 'content' => $this->image->width]);
         $this->setMeta('meta', ['property' => 'og:image:height', 'content' => $this->image->height]);
+
+        if (!empty($this->image_alt)) {
+          $this->setMeta('meta', ['property' => 'og:image:alt', 'content' => $this->image_alt]);
+        }
       }
     }
 
@@ -210,6 +229,10 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       // Twitter image
       if (!empty($this->image)) {
         $this->setMeta('meta', ['name' => 'twitter:image', 'content' => $this->image->httpUrl]);
+
+        if (!empty($this->image_alt)) {
+          $this->setMeta('meta', ['property' => 'twitter:image:alt', 'content' => $this->image_alt]);
+        }
       }
     }
 
@@ -510,7 +533,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f = $modules->get('InputfieldText');
       $f->name = 'image_selector';
       $f->label = __('Image selector');
-      $f->description = __('This selector will be used to get current page image using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
+      $f->description = __('This selector will be used to get image from the page using [`$page->get()`](https://processwire.com/api/ref/page/get/) method.');
       $f->icon = 'search';
       $f->columnWidth = 50;
       $f->attr('value', $data[$f->name]);
@@ -538,6 +561,16 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       $f->attr('value', $data[$f->name]);
       $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
       $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $set->add($f);
+
+      $f = $modules->get('InputfieldText');
+      $f->name = 'image_alt_field';
+      $f->label = __('Image object field name for alternative text');
+      $f->description = __('The value of this field will be used as an alternative text of the image. Enable custom fields for your image field and specify the field name. [Read more about custom image fields](https://processwire.com/blog/posts/pw-3.0.142/).');
+      $f->icon = 'cube';
+      $f->notes = __('Default') .': '. $defaults[$f->name] . "\r ";
+      $f->notes .= sprintf(__('API: `$module->%s`'), $f->name);
+      $f->attr('value', $data[$f->name]);
       $set->add($f);
 
       $f = $modules->get('InputfieldCheckbox');
