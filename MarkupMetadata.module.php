@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 120,
+      'version' => 121,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -116,22 +116,21 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 	private function getPageUrl (?\ProcessWire\Language $language = null) : ?string {
     if (empty($this->base_url)) return null;
 
-    // Add base URL
-		$url = rtrim($this->base_url, '/');
+    $url = implode('/', array_filter([
+      rtrim($this->base_url, '/'),
+      trim((!empty($language)) ? $this->page->localUrl($language) : $this->page->url, '/'),
+      $this->page->template->urlSegments === 1 ? $this->input->urlSegmentStr : null,
+    ]));
 
-    // Add page URL
-    $url .= (!empty($language)) ? $this->page->localUrl($language) : $this->page->url;
+    // Add trailing slash if required
+    if (
+      ($this->page->template->urlSegments === 1 && $this->page->template->slashUrlSegments === 1 && $this->input->urlSegmentStr) ||
+      ($this->page->template->slashUrls === 1 && !$this->input->urlSegmentStr)
+    ) {
+      $url .= '/';
+    }
 
-    // Add URL segments
-		if ($this->input->urlSegmentStr) {
-			$url .= $this->input->urlSegmentStr;
-
-			if ($this->page->template->slashUrlSegments == 1) {
-				$url .= '/';
-			}
-		}
-
-		return $url;
+    return $url;
 	}
 
   /**
