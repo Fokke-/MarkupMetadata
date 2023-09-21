@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 121,
+      'version' => 122,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -125,7 +125,8 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     // Add trailing slash if required
     if (
       ($this->page->template->urlSegments === 1 && $this->page->template->slashUrlSegments === 1 && $this->input->urlSegmentStr) ||
-      ($this->page->template->slashUrls === 1 && !$this->input->urlSegmentStr)
+      ($this->page->template->slashUrls === 1 && !$this->input->urlSegmentStr) ||
+      ($this->page->template->slashUrls === 1 && $this->page->template->urlSegments === 0 && $this->input->urlSegmentStr !== '')
     ) {
       $url .= '/';
     }
