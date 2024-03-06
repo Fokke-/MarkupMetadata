@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 122,
+      'version' => 123,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -145,6 +145,11 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $this->page_url = $this->page_url ?? $this->getPageUrl();
     $this->description = $this->description ?? $this->page->get($this->description_selector);
     $this->keywords = $this->keywords ?? $this->page->get($this->keywords_selector);
+
+	// If keywords is an array, convert it to a string
+	if (is_array($this->keywords)) {
+		$this->keywords = implode(', ', $this->keywords);
+	}
 
     // Build document title
     if (empty($this->document_title)) {
