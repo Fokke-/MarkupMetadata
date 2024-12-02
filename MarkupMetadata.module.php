@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 123,
+      'version' => 124,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -182,7 +182,12 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
       }
 
       // Try to find image from the fallback page
-      $image = $this->findImageFromPage($this->pages->findOne((int) $this->image_fallback_page));
+      $this->image_fallback_page = $this->image_fallback_page && $this->image_fallback_page instanceof Page
+        ? $this->image_fallback_page->id
+        : (int) $this->image_fallback_page;
+      $image = $this->image_fallback_page > 0
+        ? $this->findImageFromPage($this->pages->findOne((int) $this->image_fallback_page))
+        : null;
       if (!empty($image)) return $this->resizeImage($image);
 
       return null;
