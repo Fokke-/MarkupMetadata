@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 125,
+      'version' => 130,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -140,7 +140,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
    * @param \ProcessWire\Language|null $language ProcessWire language page
    * @return string|null
    */
-  private function ___getUrlSegmentStr(?\ProcessWire\Language $language = null) : ?string {
+  public function ___getUrlSegmentStr(?\ProcessWire\Language $language = null) : ?string {
     return $this->input->urlSegmentStr;
   }
 
