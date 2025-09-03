@@ -31,7 +31,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
   public static function getModuleInfo() : array {
     return [
       'title' => 'Markup Metadata',
-      'version' => 124,
+      'version' => 125,
       'summary' => 'Set and render meta tags for head section.',
       'author' => 'Ville Fokke Saarivaara',
       'singular' => true,
@@ -119,7 +119,7 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
     $url = implode('/', array_filter([
       rtrim($this->base_url, '/'),
       trim((!empty($language)) ? $this->page->localUrl($language) : $this->page->url, '/'),
-      $this->page->template->urlSegments === 1 ? $this->input->urlSegmentStr : null,
+      $this->page->template->urlSegments === 1 ? $this->getUrlSegmentStr($language) : null,
     ]));
 
     // Add trailing slash if required
@@ -133,6 +133,16 @@ class MarkupMetadata extends WireData implements Module, ConfigurableModule {
 
     return $url;
 	}
+
+  /**
+   * Get URL segment string
+   *
+   * @param \ProcessWire\Language|null $language ProcessWire language page
+   * @return string|null
+   */
+  private function ___getUrlSegmentStr(?\ProcessWire\Language $language = null) : ?string {
+    return $this->input->urlSegmentStr;
+  }
 
   /**
    * Load meta tags based on module configuration
